@@ -18,6 +18,7 @@ public class TextureGenerator : MonoBehaviour {
 	[Range(1, 3)] public int dimensions = 3;
 	public Gradient gradientColor = new Gradient();
 
+	List<int> windowsIndexes = new List<int>();
 
 	List<Vector2[]> pixelsPoints = new List<Vector2[]>();
 	List <Color> interpolateColorsA = new List<Color>();
@@ -29,11 +30,11 @@ public class TextureGenerator : MonoBehaviour {
 		Color.red, 
 		Color.yellow, 
 		Color.green, 
-		//Color.blue,
+		Color.blue,
 		Color.cyan,
 		//Color.gray,
 		//Color.magenta,
-		//Color.black,
+		Color.black,
 		Color.white
 	};
 		
@@ -66,15 +67,15 @@ public class TextureGenerator : MonoBehaviour {
 			renderer.material.mainTexture = texture;
 		}
 	
-			//FillTexture ();
+			FillTexture ();
 		
 	}
 	private void Update () {
 
-		if (transform.hasChanged) {
-			transform.hasChanged = false;
-			FillTexture();
-		}
+//		if (transform.hasChanged) {
+//			transform.hasChanged = false;
+//			FillTexture();
+//		}
 
 
 		UpdateStripesColor ();
@@ -113,67 +114,87 @@ public class TextureGenerator : MonoBehaviour {
 		}
 
 				
-			pixelsPoints.Clear ();
-			interpolateColorsA.Clear ();
-			interpolateColorsB.Clear ();
-			interpolateComplete.Clear ();
-			id.Clear ();
-			times.Clear ();
-			renderer.material.mainTexture = null;
+		pixelsPoints.Clear ();
+		interpolateColorsA.Clear ();
+		interpolateColorsB.Clear ();
+		interpolateComplete.Clear ();
+		id.Clear ();
+		times.Clear ();
+		renderer.material.mainTexture = null;
 
-			texture = new Texture2D (256, 256, TextureFormat.RGB24, false);
-			texture.name = "Stripes Texture";
+		texture = new Texture2D (256, 256, TextureFormat.RGB24, false);
+		texture.name = "Stripes Texture";
 
-			texture.wrapMode = TextureWrapMode.Clamp;
-			texture.filterMode = FilterMode.Point;
-			texture.anisoLevel = 9;
-
-
-			stripeLoop = stripesFrequency ? 16 : 8;
-			stripeFrequency = stripesFrequency ? 16 : 32;
-			stripeResolution = (int)Mathf.Pow (stripeLoop, 2);
+		texture.wrapMode = TextureWrapMode.Clamp;
+		texture.filterMode = FilterMode.Point;
+		texture.anisoLevel = 9;
 
 
-			int v = 0;
-			for (int x = 0; x < stripeLoop; x++) {
+		stripeLoop = stripesFrequency ? 16 : 8;
+		stripeFrequency = stripesFrequency ? 16 : 32;
+		stripeResolution = (int)Mathf.Pow (stripeLoop, 2);
 
-				List<Vector2> innerArray = new List<Vector2> ();
+		
+		// random offset windows indexes
+		int a = 0;
+		int rand = 0;
+		while (a < stripeResolution)
+		{
 
-				for (int y = 0; y < stripeLoop; y++) {
+			rand = a + Random.Range(0,3);
+			a = rand;
+
+			//print(" a:  "+a); 
+			windowsIndexes.Add (a);
+
+			a ++;
+
+		}
+			
+//		foreach (int inn in windowsIndexes) {
+//			print (inn);
+//		}
+		//print ("windowsIndexes lenght:  " + windowsIndexes.Count);
 
 
-					Color c = ExtensionMethods.RandomColor ();
-					int yOffset1 = (int)stripeFrequency * x;
-					int yOffset2 = (resolution - (resolution - ((int)stripeFrequency * x))) + (int)stripeFrequency; 
+		int v = 0;
+		for (int x = 0; x < stripeLoop; x++) {
 
-					for (int yOff = yOffset1; yOff < yOffset2; yOff++) {
+			List<Vector2> innerArray = new List<Vector2> ();
 
-						int xOffset1 = (int)stripeFrequency * y;
-						int xOffset2 = (resolution - (resolution - ((int)stripeFrequency * y))) + (int)stripeFrequency; 
-						for (int xOff = xOffset1; xOff < xOffset2; xOff++) {
+			for (int y = 0; y < stripeLoop; y++) {
 
-							//texture.SetPixel (xOff, yOff, c);
-							innerArray.Add (new Vector2 (xOff, yOff));
-						}
 
+				Color c = ExtensionMethods.RandomColor ();
+				int yOffset1 = (int)stripeFrequency * x;
+				int yOffset2 = (resolution - (resolution - ((int)stripeFrequency * x))) + (int)stripeFrequency; 
+
+				for (int yOff = yOffset1; yOff < yOffset2; yOff++) {
+
+					int xOffset1 = (int)stripeFrequency * y;
+					int xOffset2 = (resolution - (resolution - ((int)stripeFrequency * y))) + (int)stripeFrequency; 
+					for (int xOff = xOffset1; xOff < xOffset2; xOff++) {
+
+						//texture.SetPixel (xOff, yOff, c);
+						innerArray.Add (new Vector2 (xOff, yOff));
 					}
 
-					pixelsPoints.Insert (v, innerArray.ToArray ());
-
-					interpolateColorsA.Add (Color.red);
-					interpolateColorsB.Add (Color.green);
-					interpolateComplete.Add (Color.black);
-
-					id.Add (0.0f);
-					times.Add (Random.Range (10f, 20f));
-
-					v++;
-					//print (v);
 				}
 
+				pixelsPoints.Insert (v, innerArray.ToArray ());
+
+				interpolateColorsA.Add (Color.red);
+				interpolateColorsB.Add (Color.green);
+				interpolateComplete.Add (Color.black);
+
+				id.Add (0.0f);
+				times.Add (Random.Range (10f, 20f));
+
+				v++;
+				//print (v);
 			}
-			//				///////CHANGE INDIVIDUAL BLOCKS COLOR
-			//				///////INTERPOLATE BETWEEN THE COLOR 
+
+		}
 
 
 
@@ -215,63 +236,131 @@ public class TextureGenerator : MonoBehaviour {
 //		print ("power multiplication of stripeLoop:  " + stripeResolution);
 	}
 
-	private void windowsArray (){
 
-		int[] arr = new int[51];
-
-		for (int i = 0; i < 51; i++) {
-
-			arr[i] = i;
-			//print (arr[i]);
-		}
-
-		for (int a = 0; a < arr.Length/3; a++) {
-
-			print(a * 3);
-		}
-
-	}
-
-	private void UpdateStripesColor()
+	//private void UpdateStripesColor( int cases)
+	private void UpdateStripesColor( )
 	{
+		//print (stripeResolution);
 
-			//int i = 235;
-			for (int i = 0; i < stripeResolution; i++) {
 
-				if (id [i] < 1.0f) {
-					id [i] += Time.deltaTime * (1.0f / times [i]);
-				} else {
-					id [i] = 0;
-					times [i] = Random.Range (10f, 20f);
+		int introLoop = 0;
+		int midLoop = 0;
+		int index = 0; 
 
-					interpolateColorsA [i] = interpolateComplete [i];
-					interpolateColorsB [i] = colors [Random.Range (0, colors.Length - 1)];
-				}
 
-				interpolateComplete [i] = Color.Lerp (interpolateColorsA [i], interpolateColorsB [i], id [i]);
-		
-				//print ("i: "+r+"    "+pixelsPoints[0] [r]);
-				int xMin = ((int)pixelsPoints [i] [pixelsPoints [i].Length - 1].x - (int)stripeFrequency);
-				int xMax = (int)pixelsPoints [i] [pixelsPoints [i].Length - 1].x;
+//		switch (cases) {
+//
+//		case 0:
+//			introLoop = 0;
+//			midLoop = (stripeResolution / 2);
+//			//index   (a * 2) ///in twos from 0
+//
+//			break;
+//		case 1: 
+//			introLoop = 1;
+//			midLoop = (stripeResolution / 2) + 1;
+//			//index   (a * 2) - 1    ///in twos from 1
+//
+//			break;
+//		case 2: 
+//			introLoop = 0;
+//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//
+//			///index (i * 3)   //in threes from 0
+//
+//			break;
+//		case 3: 
+//			introLoop = 1;
+//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//
+//			//index (a * 3) ///in threes eliminating -1 at start
+//			//index (a * 3) - 1  ///in threes from 2
+//			//index (a * 3) - 2   /////in threes from 1
+//
+//			break;
+//		case 4: 
+//			introLoop = 1;
+//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//			//index (a * 3) - 2   /////in threes from 1
+//
+//			break;
+//		case 5: 
+//			introLoop = 0;
+//			midLoop = (stripeResolution );
+//			/////loop trough all
+//
+//			break;
+//		}
+//
+//		for (int i = introLoop; i < midLoop; i++) {
+//			
+//
+//			switch (cases) {
+//
+//			case 0:
+//				index = (i * 2) ;
+//				break;
+//			case 1:
+//				index = (i * 2) - 1;
+//				break;
+//			case 2:
+//				index = (i * 3) ;
+//				break;
+//			case 3:
+//				index = (i * 3) - 1;
+//				break;
+//			case 4:
+//				index = (i * 3) - 2;
+//				break;
+//			case 5:
+//				index = i;
+//				break;
+//			}
 
-				int yMin = ((int)pixelsPoints [i] [pixelsPoints [i].Length - 1].y - (int)stripeFrequency);  
-				int yMax = (int)pixelsPoints [i] [pixelsPoints [i].Length - 1].y;
 
-				for (int u = yMin; u < yMax; u++) {
+		midLoop = stripeResolution;//windowsIndexes.Count - 1;
 
-					for (int h = xMin; h < xMax; h++) {
+		for (int i = introLoop; i < midLoop; i++) {
 
-						//print (texture.GetPixel (h , u ));
-						texture.SetPixel (h, u, interpolateComplete [i]);
-					}
-				}
+			index = i;//windowsIndexes [i];
+
+			if (id [index] < 1.0f) {
 				
+				id [index] += Time.deltaTime * (1.0f / times [index]);
+			} else {
+				id [index] = 0;
+				times [index] = Random.Range (5, 15f);
+
+				interpolateColorsA [index] = interpolateComplete [index];
+				interpolateColorsB [index] = colors [Random.Range (0, colors.Length - 1)];
 			}
 
-			//print ("idd  "+id [20]+"   times: "+times[20]);
-			//Apply all SetPixel calls
-			texture.Apply ();
-			renderer.material.mainTexture = texture;
+			interpolateComplete [index] = Color.Lerp (interpolateColorsA [index], interpolateColorsB [index], id [index]);
+		
+		
+			int xMin = ((int)pixelsPoints [index] [pixelsPoints [index].Length - 1].x - (int)stripeFrequency);
+			int xMax = (int)pixelsPoints [index] [pixelsPoints [index].Length - 1].x;
+
+			int yMin = ((int)pixelsPoints [index] [pixelsPoints [index].Length - 1].y - (int)stripeFrequency);  
+			int yMax = (int)pixelsPoints [index] [pixelsPoints [index].Length - 1].y;
+
+			for (int u = yMin; u < yMax; u++) {
+
+				for (int h = xMin; h < xMax; h++) {
+
+						//print (texture.GetPixel (h , u ));
+					texture.SetPixel (h, u, interpolateComplete [index]);
+				}
+			}
+				
+		}
+
+		//print (interpolateColorsA.Count +"   "+pixelsPoints.Count);
+
+		//print ("idd  "+id [20]+"   times: "+times[20]);
+		//Apply all SetPixel calls
+		texture.Apply ();
+		renderer.material.mainTexture = texture;
 	}
 
 		

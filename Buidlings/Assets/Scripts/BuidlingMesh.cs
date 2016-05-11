@@ -434,24 +434,25 @@ public class BuidlingMesh : MonoBehaviour {
 
 			//Material material = new Material (Shader.Find ("Standard"));
 			//Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
-			Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
+			//Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
+			Material material = Resources.Load ("stripes") as Material; //new Material (Shader.Find (".ShaderExample/TextureSplatting"));
 			//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 	//		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 	//
 			////type 2
-			texture = new Texture[] {
-				Resources.Load ("TextureStripe") as Texture,
-				Resources.Load ("TextureStripe1") as Texture,
-				Resources.Load ("TextureStripe2") as Texture,
-				Resources.Load ("TextureStripe3") as Texture,
-				Resources.Load ("TextureStripe4") as Texture,
-				Resources.Load ("TextureStripe5") as Texture,
-				Resources.Load ("TextureStripe6") as Texture,
-				Resources.Load ("TextureStripe7") as Texture,
-				Resources.Load ("TextureStripe8") as Texture,
-				Resources.Load ("TextureStripe9") as Texture
-			};
-
+//			texture = new Texture[] {
+//				Resources.Load ("TextureStripe") as Texture,
+//				Resources.Load ("TextureStripe1") as Texture,
+//				Resources.Load ("TextureStripe2") as Texture,
+//				Resources.Load ("TextureStripe3") as Texture,
+//				Resources.Load ("TextureStripe4") as Texture,
+//				Resources.Load ("TextureStripe5") as Texture,
+//				Resources.Load ("TextureStripe6") as Texture,
+//				Resources.Load ("TextureStripe7") as Texture,
+//				Resources.Load ("TextureStripe8") as Texture,
+//				Resources.Load ("TextureStripe9") as Texture
+//			};
+//
 
 			////type 2
 	//		texture = new Texture[] {
@@ -466,15 +467,15 @@ public class BuidlingMesh : MonoBehaviour {
 
 			//int textureIndex = (int)Mathf.Floor (Random.value * texture.Length);
 
-			Texture2D rit = randomIllumTex (texture [textureIndex].width, texture [textureIndex].height);	
-			material.SetTexture ("_MainTex", texture [textureIndex]);
-			material.SetTexture ("_BumpMap", rit);
-
-			Vector2 windowsTexture = new Vector2 (16, 32);
-			Vector2 stripesTexture = new Vector2 (1, 1);
-
-			material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
-			material.SetTextureScale ("_BumpMap", stripesTexture);
+//			Texture2D rit = randomIllumTex (texture [textureIndex].width, texture [textureIndex].height);	
+//			material.SetTexture ("_MainTex", texture [textureIndex]);
+//			material.SetTexture ("_BumpMap", rit);
+//
+//			Vector2 windowsTexture = new Vector2 (16, 32);
+//			Vector2 stripesTexture = new Vector2 (1, 1);
+//
+//			material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
+//			material.SetTextureScale ("_BumpMap", stripesTexture);
 
 			meshRenderer.material = material;
 
@@ -630,7 +631,7 @@ public class BuidlingMesh : MonoBehaviour {
 		AddToMesh();
 		CreateColliders();
 
-		CreateColorAndtexture ();
+		//CreateColorAndtexture ();
 
 		if (Input.GetMouseButtonDown (0)) {
 
