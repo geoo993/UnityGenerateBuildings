@@ -17,8 +17,7 @@ public class BuidlingMesh : MonoBehaviour {
 	private int currentSphereIndex = 0;
 	private List <GameObject> newSpheres = new List<GameObject>();
 
-	private Texture[] texture = new Texture[] {};
-	private int textureIndex = 0;
+	//private Texture[] texture = new Texture[] {};
 
 	private int xlength = 0;
 	private int ylength = 0;
@@ -72,7 +71,6 @@ public class BuidlingMesh : MonoBehaviour {
 
 	void Awake ()
 	{
-		textureIndex = (int)Mathf.Floor (Random.value * texture.Length);
 
 		this.name = "dynamic object";
 		CreateControllPointsIndexes ();
@@ -425,84 +423,75 @@ public class BuidlingMesh : MonoBehaviour {
 	private void CreateColorAndtexture() {
 
 		meshRenderer = GetComponent<MeshRenderer> ();
+		bool pickTexture = false;
+		Texture small = new Texture ();
+		Texture big = new Texture ();
+		Texture inverted = new Texture ();
 
 		if (addTexture)
 		{
-			//Material material = Resources.Load("Material") as Material;
-			//meshRenderer.material = material;
-
 
 			//Material material = new Material (Shader.Find ("Standard"));
-			//Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
 			//Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
-			Material material = Resources.Load ("stripes") as Material; //new Material (Shader.Find (".ShaderExample/TextureSplatting"));
-			//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
-	//		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
-	//
-			////type 2
-//			texture = new Texture[] {
-//				Resources.Load ("TextureStripe") as Texture,
-//				Resources.Load ("TextureStripe1") as Texture,
-//				Resources.Load ("TextureStripe2") as Texture,
-//				Resources.Load ("TextureStripe3") as Texture,
-//				Resources.Load ("TextureStripe4") as Texture,
-//				Resources.Load ("TextureStripe5") as Texture,
-//				Resources.Load ("TextureStripe6") as Texture,
-//				Resources.Load ("TextureStripe7") as Texture,
-//				Resources.Load ("TextureStripe8") as Texture,
-//				Resources.Load ("TextureStripe9") as Texture
-//			};
-//
 
-			////type 2
-	//		texture = new Texture[] {
-	//
-	//			Resources.Load ("windowr") as Texture,
-	//			Resources.Load ("window2r") as Texture,
-	//			Resources.Load ("window3r") as Texture,
-	//			Resources.Load ("window4r") as Texture,
-	//			Resources.Load ("window5r") as Texture,
-	//			Resources.Load ("window6r") as Texture
-	//		};
+			Material material = new Material (Shader.Find (".ShaderExample/TextureSplatting"));
 
-			//int textureIndex = (int)Mathf.Floor (Random.value * texture.Length);
+			if (!pickTexture ){
+				Texture[] smallStripes = new Texture[] {
+					Resources.Load ("TextureStripe2") as Texture,
+					Resources.Load ("TextureStripe7") as Texture,
+					Resources.Load ("TextureStripe8") as Texture,
+					Resources.Load ("TextureStripe9") as Texture
+				};
+				int pickSmallStripes = (int)Mathf.Floor (Random.value * smallStripes.Length);
 
-//			Texture2D rit = randomIllumTex (texture [textureIndex].width, texture [textureIndex].height);	
-//			material.SetTexture ("_MainTex", texture [textureIndex]);
-//			material.SetTexture ("_BumpMap", rit);
-//
-//			Vector2 windowsTexture = new Vector2 (16, 32);
-//			Vector2 stripesTexture = new Vector2 (1, 1);
-//
-//			material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
-//			material.SetTextureScale ("_BumpMap", stripesTexture);
 
+				Texture[] bigStripes = new Texture[] {
+		
+					Resources.Load ("TextureStripe1") as Texture,
+					Resources.Load ("TextureStripe3") as Texture,
+					Resources.Load ("TextureStripe4") as Texture,
+					Resources.Load ("TextureStripe5") as Texture,
+					Resources.Load ("TextureStripe6") as Texture,
+					Resources.Load ("TextureStripe10") as Texture
+				};
+				int pickBigStripes = (int)Mathf.Floor (Random.value * bigStripes.Length);
+
+				Texture[] bigStripesInverted = new Texture[] {
+
+					Resources.Load ("TextureStripe11") as Texture,
+					Resources.Load ("TextureStripe33") as Texture,
+					Resources.Load ("TextureStripe44") as Texture,
+					Resources.Load ("TextureStripe55") as Texture,
+					Resources.Load ("TextureStripe66") as Texture
+				};
+				int pickbigStripesInverted = (int)Mathf.Floor (Random.value * bigStripesInverted.Length);
+
+				small = smallStripes [pickSmallStripes] as Texture;
+				big = bigStripes [pickBigStripes] as Texture;
+				inverted = bigStripesInverted [pickbigStripesInverted] as Texture;
+
+				pickTexture = true;
+			}
+
+//			material.SetTexture ("_MainTex", texture [1]);
+//			material.SetTextureScale ("_MainTex", new Vector2(1,1)); 
+
+		
+			material.SetTexture ("_Texture1", small);
+			material.SetTextureScale ("_Texture1", new Vector2(1,1));
+
+			material.SetTexture ("_Texture2", big);
+			material.SetTextureScale ("_Texture2", new Vector2(1,1));
+
+
+			//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 			meshRenderer.material = material;
 
 		}else{
 			meshRenderer.material = null;
 		}
 
-	}
-
-	Texture2D randomIllumTex(int w, int h) {
-
-		Texture2D texture = new Texture2D(w, h , TextureFormat.Alpha8, true);
-		int mipCount = texture.mipmapCount;
-		texture.filterMode = FilterMode.Point;
-
-		for( int mip = 0; mip < mipCount; ++mip ) {
-			Color[] cols = texture.GetPixels( mip );
-
-			for(int i = 0; i < cols.Length; ++i ) {
-				float rand = Random.value;
-				if(rand < 0.2f) rand = 0.0f;
-				cols[i] = new Color(0, 0, 0, rand);
-			}
-			texture.SetPixels( cols, mip );
-		}
-		texture.Apply(true);
-		return texture;
 	}
 
 	private void UpdateVerticesAndPositions() {
@@ -625,11 +614,11 @@ public class BuidlingMesh : MonoBehaviour {
 	void Update()
 	{
 
-		CreateMesh ();
-		UpdateVerticesAndPositions ();
-		CreateTriangles();
-		AddToMesh();
-		CreateColliders();
+//		CreateMesh ();
+//		UpdateVerticesAndPositions ();
+//		CreateTriangles();
+//		AddToMesh();
+//		CreateColliders();
 
 		//CreateColorAndtexture ();
 

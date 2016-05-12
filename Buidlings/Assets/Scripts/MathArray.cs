@@ -17,6 +17,18 @@ public class MathArray : MonoBehaviour {
 
 	}
 
+	bool randomBoolean ()
+	{
+		bool res;
+		if (Random.value >= 0.5)
+		{
+			res = true;
+		}else {
+			
+			res = false;
+		}
+		return res;
+	}
 
 	private void windowsArray (){
 
@@ -80,5 +92,18 @@ public class MathArray : MonoBehaviour {
 //
 	}
 
+	private void boundds()  {
 
+
+		//plane.transform.localScale = new Vector3 (xSize, plane.transform.localScale.y, zSize);
+		//plane.GetComponent<MeshRenderer>().bounds.size = new Vector3 (xSize, 1f, zSize);
+
+		//plane.GetComponent<Collider> ().bounds.size;
+		//plane.GetComponent<Renderer>().bounds.size;
+
+		//		g.renderer.bounds.extents.x
+		//		g.renderer.bounds.max.x
+		//plane.GetComponent<MeshRenderer>().bounds = new Bounds(plane.GetComponent<MeshRenderer>().bounds.center, new Vector3 (xSize, 1f, zSize));
+
+	}
 }

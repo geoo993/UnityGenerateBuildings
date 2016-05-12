@@ -4,8 +4,8 @@
 	Properties {
 
 		_MainTex ("Splat Map", 2D) = "white" {}
-		[NoScaleOffset] _Texture1 ("Texture 1", 2D) = "white" {}
-		[NoScaleOffset] _Texture2 ("Texture 2", 2D) = "white" {}
+		[NoScaleOffset] _Texture1 ("Texture1", 2D) = "white" {}
+		[NoScaleOffset] _Texture2 ("Texture2", 2D) = "white" {}
 //		[NoScaleOffset] _Texture3 ("Texture 3", 2D) = "white" {}
 //		[NoScaleOffset] _Texture4 ("Texture 4", 2D) = "white" {}
 		_Tint("Tint", Color) = (1, 1, 1, 1)

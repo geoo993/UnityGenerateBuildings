@@ -5,25 +5,18 @@ using System.Collections.Generic;
 public class TextureGenerator : MonoBehaviour {
 
 
-	[Range(2, 512)] public int resolution = 256;
+	private int resolution = 256;
 
-	MeshRenderer renderer;
+	private MeshRenderer renderer;
 	private Texture2D texture;
-	private Color color = Color.blue;
 
-	[Range(2, 36)] public float frequency = 16f;
-	[Range(1, 8)] public int octaves = 1;
-	[Range(1f, 4f)] public float lacunarity = 2f;
-	[Range(0f, 1f)] public float persistence = 0.5f;
-	[Range(1, 3)] public int dimensions = 3;
-	public Gradient gradientColor = new Gradient();
 
-	List<int> windowsIndexes = new List<int>();
+	private List<int> windowsIndexes = new List<int>();
 
-	List<Vector2[]> pixelsPoints = new List<Vector2[]>();
-	List <Color> interpolateColorsA = new List<Color>();
-	List <Color> interpolateColorsB = new List<Color>();
-	List <Color> interpolateComplete = new List<Color>();
+	private List<Vector2[]> pixelsPoints = new List<Vector2[]>();
+	private List <Color> interpolateColorsA = new List<Color>();
+	private List <Color> interpolateColorsB = new List<Color>();
+	private List <Color> interpolateComplete = new List<Color>();
 
 	Color[] colors = new Color[]
 	{
@@ -41,14 +34,27 @@ public class TextureGenerator : MonoBehaviour {
 	List <float> id = new List<float>();
 	List <float> times = new List<float>();
 
-	public bool stripesFrequency = false;
+	private bool stripesFrequency = true;
 	private float stripeFrequency = 16;//32
 	private int stripeLoop = 16;
 	private int stripeResolution = 256;
 
 
-	//private void Awake () {
-	private void OnEnable () {
+	private void Awake () {
+
+		FillTexture ();
+		
+	}
+	private void Update () {
+
+
+		UpdateStripesColor ();
+
+
+	}
+
+
+	public void FillTexture () {
 
 		renderer = GetComponent<MeshRenderer> ();
 
@@ -66,47 +72,7 @@ public class TextureGenerator : MonoBehaviour {
 
 			renderer.material.mainTexture = texture;
 		}
-	
-			FillTexture ();
-		
-	}
-	private void Update () {
 
-//		if (transform.hasChanged) {
-//			transform.hasChanged = false;
-//			FillTexture();
-//		}
-
-
-		UpdateStripesColor ();
-
-
-	}
-
-	private void addGradient (Gradient g)
-	{
-
-		GradientColorKey blue = new GradientColorKey(Color.blue, 0.0f);
-		GradientColorKey white = new GradientColorKey(Color.white, 0.3f);
-		GradientColorKey black = new GradientColorKey(Color.black, 0.45f);
-		GradientColorKey yellow = new GradientColorKey(Color.yellow, 0.6f);
-		GradientColorKey red = new GradientColorKey(Color.red, 1f);
-
-		GradientAlphaKey blueAlpha = new GradientAlphaKey(1,0);
-		GradientAlphaKey yellowAlpha = new GradientAlphaKey(1,1);
-
-
-		GradientColorKey[] colorKeys = new GradientColorKey[]{blue, white, black, yellow, red};
-		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[]{blueAlpha,yellowAlpha};
-		g.SetKeys(colorKeys, alphaKeys);
-
-
-	}
-
-
-
-
-	public void FillTexture () {
 
 
 		if (texture.width != resolution) {
@@ -148,7 +114,6 @@ public class TextureGenerator : MonoBehaviour {
 			windowsIndexes.Add (a);
 
 			a ++;
-
 		}
 			
 //		foreach (int inn in windowsIndexes) {
@@ -196,37 +161,6 @@ public class TextureGenerator : MonoBehaviour {
 
 		}
 
-
-
-//		//int r = 235;
-//		for (int r = 0; r < resolution; r++) {
-//
-//			Color startC = ExtensionMethods.RandomColor ();
-//			Color endC = ExtensionMethods.RandomColor ();
-//			Color c = Color.Lerp(startC, endC, timer/100);
-//
-//			//print ("i: "+r+"    "+pixelsPoints[0] [r]);
-//			int xMin = ((int)pixelsPoints [r] [pixelsPoints [r].Length - 1].x -  (int)frequency);
-//			int xMax = (int)pixelsPoints [r] [pixelsPoints [r].Length - 1].x;
-//
-//			int yMin = ((int)pixelsPoints [r] [pixelsPoints [r].Length - 1].y -  (int)frequency);  
-//			int yMax = (int)pixelsPoints [r] [pixelsPoints [r].Length - 1].y;
-//
-//			for (int u = yMin; u < yMax; u++) {
-//				
-//				for (int h = xMin; h < xMax; h++) {
-//
-//					texture.SetPixel (h, u, c);
-//
-//				}
-//			}
-//		}
-		
-			//texture.Apply();
-
-			//renderer.material.mainTexture = texture;
-
-
 //		print ("pixals Areas: "+pixelsPoints.Count);
 //		print ("color A:  "+interpolateColorsA.Count);
 //		print ("color B:  "+interpolateColorsB.Count);
@@ -246,77 +180,6 @@ public class TextureGenerator : MonoBehaviour {
 		int introLoop = 0;
 		int midLoop = 0;
 		int index = 0; 
-
-
-//		switch (cases) {
-//
-//		case 0:
-//			introLoop = 0;
-//			midLoop = (stripeResolution / 2);
-//			//index   (a * 2) ///in twos from 0
-//
-//			break;
-//		case 1: 
-//			introLoop = 1;
-//			midLoop = (stripeResolution / 2) + 1;
-//			//index   (a * 2) - 1    ///in twos from 1
-//
-//			break;
-//		case 2: 
-//			introLoop = 0;
-//			midLoop = ((stripeResolution + 1) / 3) + 1;
-//
-//			///index (i * 3)   //in threes from 0
-//
-//			break;
-//		case 3: 
-//			introLoop = 1;
-//			midLoop = ((stripeResolution + 1) / 3) + 1;
-//
-//			//index (a * 3) ///in threes eliminating -1 at start
-//			//index (a * 3) - 1  ///in threes from 2
-//			//index (a * 3) - 2   /////in threes from 1
-//
-//			break;
-//		case 4: 
-//			introLoop = 1;
-//			midLoop = ((stripeResolution + 1) / 3) + 1;
-//			//index (a * 3) - 2   /////in threes from 1
-//
-//			break;
-//		case 5: 
-//			introLoop = 0;
-//			midLoop = (stripeResolution );
-//			/////loop trough all
-//
-//			break;
-//		}
-//
-//		for (int i = introLoop; i < midLoop; i++) {
-//			
-//
-//			switch (cases) {
-//
-//			case 0:
-//				index = (i * 2) ;
-//				break;
-//			case 1:
-//				index = (i * 2) - 1;
-//				break;
-//			case 2:
-//				index = (i * 3) ;
-//				break;
-//			case 3:
-//				index = (i * 3) - 1;
-//				break;
-//			case 4:
-//				index = (i * 3) - 2;
-//				break;
-//			case 5:
-//				index = i;
-//				break;
-//			}
-
 
 		midLoop = stripeResolution;//windowsIndexes.Count - 1;
 
