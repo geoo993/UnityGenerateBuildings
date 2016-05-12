@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(TextureGenerator))]
 
-public class BuidlingAndTexture : MonoBehaviour {
+public class BuidlingAndTextureFinal : MonoBehaviour {
 
 
 	public GameObject sphere;

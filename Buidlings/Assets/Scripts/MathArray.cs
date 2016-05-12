@@ -32,8 +32,25 @@ public class MathArray : MonoBehaviour {
 
 	private void windowsArray (){
 
+
+		//		int siz = 112;
+		//
+		//		int sp = 1;
+		//		int res = 0 ;
+		//		while (siz/sp > 30)
+		//		{
+		//			
+		//			print (siz/sp);
+		//			res = siz / sp;
+		//			sp ++;
+		//		}
+
+
+
+
 		int length1 = 64;
 		int length2 = length1 + 1;
+
 
 
 		////random offset in array
