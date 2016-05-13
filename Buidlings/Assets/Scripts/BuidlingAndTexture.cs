@@ -52,17 +52,35 @@ public class BuidlingAndTexture : MonoBehaviour {
 	private MeshFilter meshFilter;
 	private Renderer meshRenderer;
 	private Mesh mesh;
-	private Vector3[] vertices;
-	private int[] triangles; 
 
-	private Vector3[] normals;
-	private Vector2[] uv;
+
+	//private Vector3[] vertices = new Vector3[]{};
+	private List<Vector3> vertices = new List<Vector3>();
+
+	//private Vector3[] normals;
+	private List<Vector3> normals = new List<Vector3>();
+
+	//private Vector2[] uv;
+	private List<Vector2> uv = new List<Vector2>();
+
+	private int[] triangles; 
+	//private List<int> triangles = new List<int>();
+
+	List<int> mee = new List<int> ();
+
+
 	private static int
 	SetQuad (int[] triangles, int i, int v00, int v10, int v01, int v11) {
+
 		triangles[i] = v00;
-		triangles[i + 1] = triangles[i + 4] = v01;
-		triangles[i + 2] = triangles[i + 3] = v10;
+		triangles[i + 4] = v01;
+		triangles[i + 1] = triangles[i + 4];
+		triangles[i + 3] = v10;
+		triangles[i + 2] = triangles[i + 3];
 		triangles[i + 5] = v11;
+
+
+
 		return i + 6;
 	}
 
@@ -255,10 +273,14 @@ public class BuidlingAndTexture : MonoBehaviour {
 			(xSize - 1) * (ySize - 1) +
 			(xSize - 1) * (zSize - 1) +
 			(ySize - 1) * (zSize - 1)) * 2;
-		vertices = new Vector3[cornerVertices + edgeVertices + faceVertices];
-		normals = new Vector3[vertices.Length];
-		uv = new Vector2[vertices.Length];
-	
+
+		int verticesLength = cornerVertices + edgeVertices + faceVertices;
+		//vertices = new Vector3[verticesLength];
+		//normals = new Vector3[verticesLength];
+		//uv = new Vector2[verticesLength];
+
+		print ("vertices Length: "+verticesLength);
+
 		int v = 0;
 		// sides
 		for (int y = 0; y <= ySize; y++) {
@@ -295,8 +317,12 @@ public class BuidlingAndTexture : MonoBehaviour {
 
 	}
 	private void SetVertex (int i, int x, int y, int z) {
-		Vector3 inner = vertices[i] = new Vector3(x, y, z);
+		
+		Vector3 vect = new Vector3 (x, y, z);
+		//vertices[i] = new Vector3(x, y, z);
+		Vector3 inner = vect;
 
+			
 		////sides
 		if (x < roundness) {
 			if (roundSides) {
@@ -347,10 +373,13 @@ public class BuidlingAndTexture : MonoBehaviour {
 			}
 		}
 
-		normals[i] = (vertices[i] - inner).normalized;
-		vertices[i] = inner + normals[i] * roundness;
-		//cubeUV[i] = new Color32((byte)x, (byte)y, (byte)z, 0);
-		uv[i] = new Vector2((float)x / ( xSize), (float)y / (ySize ));
+//		normals[i] = (vect - inner).normalized;
+//		vertices[i] = inner + normals[i] * roundness;
+//		uv[i] = new Vector2((float)x / ( xSize), (float)y / (ySize ));
+
+		normals.Add((vect - inner).normalized);
+		vertices.Add(inner + normals[i] * roundness);
+		uv.Add(new Vector2((float)x / ( xSize), (float)y / (ySize) ));
 
 
 	}
@@ -358,7 +387,8 @@ public class BuidlingAndTexture : MonoBehaviour {
 	private void CreateTriangles () {
 		
 		int quads = (xSize * ySize + xSize * zSize + ySize * zSize) * 2;
-		triangles = new int[quads * 6];
+		int triLength = quads * 6;
+		triangles = new int[triLength];
 		int ring = (xSize + zSize) * 2;
 		int t = 0, v = 0;
 
@@ -408,7 +438,8 @@ public class BuidlingAndTexture : MonoBehaviour {
 
 	private int CreateBottomFace (int[] triangles, int t, int ring) {
 		int v = 1;
-		int vMid = vertices.Length - (xSize - 1) * (zSize - 1);
+		int vMid = vertices.Count - (xSize - 1) * (zSize - 1);
+
 		t = SetQuad(triangles, t, ring - 1, vMid, 0, 1);
 		for (int x = 1; x < xSize - 1; x++, v++, vMid++) {
 			t = SetQuad(triangles, t, vMid, vMid + 1, v, v + 1);
@@ -441,11 +472,11 @@ public class BuidlingAndTexture : MonoBehaviour {
 
 	private void AddPropertiesToMesh()
 	{
-		mesh.vertices = vertices;
+		mesh.vertices = vertices.ToArray();
 		mesh.triangles = triangles;
 
-		mesh.normals = normals;
-		mesh.uv = uv;
+		mesh.normals = normals.ToArray();
+		mesh.uv = uv.ToArray();
 
 		mesh.RecalculateNormals();
 		mesh.RecalculateBounds();
@@ -470,7 +501,7 @@ public class BuidlingAndTexture : MonoBehaviour {
 	private void GetIndexes () {
 
 		int p = 0;
-		for (int i = 0; i < vertices.Length; i++) {
+		for (int i = 0; i < vertices.Count; i++) {
 
 			Vector3 vertexPos = new Vector3 (vertices [i].x + this.transform.position.x, vertices [i].y + this.transform.position.y, vertices [i].z + this.transform.position.z);
 			verticesCopy.Add(vertexPos);
@@ -486,7 +517,7 @@ public class BuidlingAndTexture : MonoBehaviour {
 
 		}
 
-		Debug.Log ("vertices length: "+vertices.Length +"   list of indexes length: "+ listOfVerticesIndexes.Count+"  vertex points copied: "+verticesCopy.Count);
+		//Debug.Log ("vertices length: "+vertices.Length +"   list of indexes length: "+ listOfVerticesIndexes.Count+"  vertex points copied: "+verticesCopy.Count);
 
 
 	}
@@ -942,6 +973,37 @@ public class BuidlingAndTexture : MonoBehaviour {
 		CreateColliders();
 		CreateColorAndtexture ();
 
+//		print("vertices: "+vertices.Length);
+//		print("normals: "+normals.Length);
+//		print("uv: "+uv.Length);
+
+		//int i, int v00, int v10, int v01, int v11
+
+//		for (int i = 0; i < 100; i++) {
+//
+//			var ip = (i + 1)%radialSegments;
+//			var jp = (j + 1)%tubularSegments;
+//
+//			var a = grid[i][j];
+//			var b = grid[ip][j];
+//			var c = grid[ip][jp];
+//			var d = grid[i][jp];
+//
+//			triangles.Add(a);
+//			triangles.Add(b);
+//			triangles.Add(d);
+//
+//			triangles.Add(b);
+//			triangles.Add(c);
+//			triangles.Add(d);
+//
+//
+//			mee[i] = 1;
+////			mee[i + 1] = mee[i + 4] = 2;
+////			mee[i + 2] = mee[i + 3] = 3;
+////			mee[i + 5] = 4;
+//		}
+		print (mee);
 
 
 

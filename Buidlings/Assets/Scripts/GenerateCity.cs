@@ -15,53 +15,42 @@ public class GenerateCity : MonoBehaviour {
 
 	List<GameObject> areas = new List<GameObject>();
 	List<GameObject> areasIndexDelete = new List<GameObject>();
-	private int gameObjectCount = 0;
 
 	private List<Vector3> edgePoints = new List<Vector3>();
-
+	private int gameObjectCount = 0;
 	[Range(5,20)] public int minSize = 10;
 	[Range(100,400)] public int mapWidth = 200;
 	[Range(100,400)] public int mapHeight = 200;
 
-	private GameObject pyramid = null;
-	private MeshFilter pyramidMeshFilter = new MeshFilter();
-	private MeshRenderer pyramidRenderer = new MeshRenderer();
-	private Color pyramidColor = new Color();
-	private Color pyramidTargetColor = new Color();
+	public GameObject sphere;
+	private List <GameObject> newSpheres = new List<GameObject>();
 
-	private Vector3 pyramidV4 = new Vector3 (); 
-	private Vector3 pyramidV5 = new Vector3 ();
-	private Vector3 pyramidV6 = new Vector3 (); 
-	private Vector3 pyramidV7 = new Vector3 ();
+	private int xlength = 0;
+	private int ylength = 0;
+	private int zlength = 0;
 
-	private float pyramidHeight = 50.0f;
-	private float waitNumber = 10.0f;
+	private int xSize = 12;
+	private int ySize = 40;
+	private int zSize = 6;
 
+	private int roundness = 0;
+	private bool roundTop = false;
+	private bool roundFront = false;
+	private bool roundBack = false;
+	private bool roundSides = false;
 
-	private void Awake () {
-
-		this.transform.name = "city";
-		StartCoroutine(GenerateAreas ());
-		addMapEdges ();
-		drawPyramid ();
-
-	
-		//print("edges: "+mapEdgePoints.Count);
-	}
-
-
-	private void addMapEdges()
-	{
-		mapEdgePoints.Add( new Vector3(0, 0, 0));
-		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
-		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
-		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
-		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
-		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
-		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
-		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
-		//mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
-	}
+//	private void addMapEdges()
+//	{
+//		mapEdgePoints.Add( new Vector3(0, 0, 0));
+//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
+//		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
+//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
+//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
+//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
+//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
+//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
+//		//mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
+//	}
 
 	Vector3 GetClosestEdge(Vector3 currentPosition, List<Vector3> targets)
 	{
@@ -298,9 +287,7 @@ public class GenerateCity : MonoBehaviour {
 
 	private IEnumerator GenerateAreas () 
 	{
-		WaitForSeconds wait = new WaitForSeconds (1f);
-		WaitForSeconds wait2 = new WaitForSeconds(0.4f);
-		WaitForSeconds wait3 = new WaitForSeconds(0.05f);
+		WaitForSeconds wait = new WaitForSeconds (0.05f);
 
 		GameObject startCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		startCube.transform.localScale = new Vector3 (mapWidth,1,mapHeight);
@@ -320,7 +307,7 @@ public class GenerateCity : MonoBehaviour {
 				splitZ ( areas [i] );
 			}
 
-			yield return wait3;
+			//yield return wait;
 		}
 
 		Debug.Log ("all Areas: "+areas.Count +"   toDeleted: "+areasIndexDelete.Count);
@@ -333,52 +320,79 @@ public class GenerateCity : MonoBehaviour {
 				areas.Remove (areasIndexDelete [a]);
 			}
 			if (areas [j] == null) {
-				print (j);
+				
 				areas.RemoveAt(j);
 			}
 		}
 
-		Debug.Log (areas.Count);
+		Debug.Log ("areas: "+areas.Count);
 
-		yield return wait3;
-
+		yield return wait;
 
 
 		for (int i = 0; i < areas.Count; i++) {
 
 			GetVectors (areas [i]);
-
 		}
 
-		yield return wait3;
+		yield return wait;
 
-
+		print("map edges: "+mapEdgePoints.Count);
+		print ("areas edges: " + edgePoints.Count);
 
 		for (int i = 0; i < areas.Count; i++) {
 
-			GameObject buildingMesh = CreateCube ();
-			buildingMesh.transform.parent = this.transform;
-			buildingMesh.name = "building"; ///+ b;
-
-
-			float distanceToCenter = Vector3.Distance (GetClosestEdge(areas [i].transform.position,mapEdgePoints), areas [i].transform.position);
-			float scaleX = 	Mathf.Clamp(areas [i].transform.localScale.x / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.x / Random.Range(1.5f,20.0f), areas [i].transform.localScale.x - 5);
-			float scaleHeight = distanceToCenter;//Random.Range ((mapHeight/15), (mapHeight/3));
-			float scaleZ = 	Mathf.Clamp(areas [i].transform.localScale.z / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.z / Random.Range(1.5f,20.0f), areas [i].transform.localScale.z - 5);
-
-			buildingMesh.transform.localScale = new Vector3 (scaleX, scaleHeight, scaleZ);
-
-			float xPos = areas [i].transform.position.x - (buildingMesh.transform.localScale.x / 2);
-			float zPos = areas [i].transform.position.z - (buildingMesh.transform.localScale.z / 2);
-			buildingMesh.transform.position = new Vector3 (xPos, this.transform.position.y, zPos);
-
-			yield return wait3;
+//			xSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.x;
+//			zSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.z;
+//
+//			//move from center
+//			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
+//			float zz = areas[i].transform.position.z - ((float)zSize/2.0f);
+//
+//			Vector3 pivotCenter = new Vector3 (xx,areas[i].transform.position.y, zz);
+//
+//			createSphere (pivotCenter, newSpheres);
 		}
+
+
+
+
+//		for (int i = 0; i < areas.Count; i++) {
+//
+//			GameObject buildingMesh = CreateCube ();
+//			buildingMesh.transform.parent = this.transform;
+//			buildingMesh.name = "building"; ///+ b;
+//
+//
+//			float distanceToCenter = Vector3.Distance (GetClosestEdge(areas [i].transform.position,mapEdgePoints), areas [i].transform.position);
+//			float scaleX = 	Mathf.Clamp(areas [i].transform.localScale.x / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.x / Random.Range(1.5f,20.0f), areas [i].transform.localScale.x - 5);
+//			float scaleHeight = distanceToCenter;//Random.Range ((mapHeight/15), (mapHeight/3));
+//			float scaleZ = 	Mathf.Clamp(areas [i].transform.localScale.z / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.z / Random.Range(1.5f,20.0f), areas [i].transform.localScale.z - 5);
+//
+//			buildingMesh.transform.localScale = new Vector3 (scaleX, scaleHeight, scaleZ);
+//
+//			float xPos = areas [i].transform.position.x - (buildingMesh.transform.localScale.x / 2);
+//			float zPos = areas [i].transform.position.z - (buildingMesh.transform.localScale.z / 2);
+//			buildingMesh.transform.position = new Vector3 (xPos, this.transform.position.y, zPos);
+//
+//			yield return wait3;
+//		}
 
 
 
 		//		yield return wait;
 		//Debug.Break();
+	}
+
+	private GameObject createSphere(Vector3 pos , List <GameObject> objectArr){
+
+		GameObject a = (GameObject) Instantiate(sphere, pos, Quaternion.identity);
+		a.transform.localScale = new Vector3 (2.5f, 2.5f, 2.5f);
+		a.GetComponent<Renderer> ().material.color = Color.white;
+		a.transform.parent = this.transform;
+		objectArr.Add (a);
+
+		return a;
 	}
 
 
@@ -455,6 +469,15 @@ public class GenerateCity : MonoBehaviour {
 		}
 	}
 
+	private void Awake () {
+
+		this.transform.name = "city";
+		StartCoroutine(GenerateAreas ());
+		//addMapEdges ();
+
+
+	}
+
 	void Update()
 	{
 		if (Input.GetMouseButtonDown (0)) {
@@ -503,181 +526,8 @@ public class GenerateCity : MonoBehaviour {
 		}
 
 
-		UpdatePyramid ();
 	}
 
-	private void drawPyramid()
-	{
-		pyramid = new GameObject("pyramidMesh");
-		pyramid.transform.parent = this.transform;
-		pyramid.transform.position = new Vector3 (this.transform.position.x+(mapWidth/2), this.transform.position.y , this.transform.position.z+(mapHeight/2));
-		pyramid.transform.eulerAngles = new Vector3(0,0,180f);
 
-		pyramidMeshFilter = pyramid.AddComponent<MeshFilter>();
-		pyramidRenderer = pyramid.AddComponent<MeshRenderer> ();
-		pyramidColor = new Color( Random.value, Random.value, Random.value, 1.0f);
-	}
-
-	void UpdatePyramid()
-	{
-
-		if (waitNumber > 0.0f) {
-			waitNumber -= Time.deltaTime;
-		} else {
-			waitNumber = Random.Range (10.0f, 20.0f);
-			pyramidTargetColor = new Color (Random.value, Random.value, Random.value, 1.0f);
-			pyramidHeight = Random.Range (50.0f, mapHeight);
-
-			Debug.Log (waitNumber);
-		}
-
-
-		if (pyramidMeshFilter==null){
-			Debug.LogError("MeshFilter not found!");
-			return;
-		}
-
-		Mesh mesh = pyramidMeshFilter.sharedMesh;
-		if (mesh == null){
-			pyramidMeshFilter.mesh = new Mesh();
-			mesh = pyramidMeshFilter.sharedMesh;
-		}
-
-		mesh.Clear();
-
-		Vector3 pyramidV0 = new Vector3 (-mapWidth/2, 0, mapWidth/2 ); 
-		Vector3 pyramidV1 = new Vector3 (mapWidth/2, 0, mapWidth/2 ); 
-		Vector3 pyramidV2 = new Vector3 (mapWidth/2 , 0, -mapWidth/2); 
-		Vector3 pyramidV3 = new Vector3 (-mapWidth/2 , 0 , -mapWidth/2);
-		// morph to pyramid
-		pyramidV4 = Vector3.Lerp (pyramidV4, new Vector3 (0, pyramidHeight, 0 ),Time.deltaTime); 
-		pyramidV5 = Vector3.Lerp (pyramidV5, new Vector3 (0, pyramidHeight, 0 ), Time.deltaTime);
-		pyramidV6 = Vector3.Lerp (pyramidV6, new Vector3 (0, pyramidHeight, 0), Time.deltaTime); 			
-		pyramidV7 = Vector3.Lerp (pyramidV7, new Vector3 (0, pyramidHeight, 0), Time.deltaTime);
-
-
-		mesh.vertices = new Vector3[]{
-
-			// Front face 
-			pyramidV4, pyramidV5, pyramidV0, pyramidV1,
-
-			// Back face 
-			pyramidV6, pyramidV7, pyramidV2, pyramidV3,
-
-			// Left face 
-			pyramidV7, pyramidV4, pyramidV3, pyramidV0,
-
-			// Right face
-			pyramidV5, pyramidV6, pyramidV1, pyramidV2,
-
-			// Top face 
-			pyramidV7, pyramidV6, pyramidV4, pyramidV5,
-
-			// Bottom face 
-			pyramidV0, pyramidV1, pyramidV3, pyramidV2
-
-
-		};
-
-		//Add Triangles region 
-		//these are three point, and work clockwise to determine what side is visible
-		mesh.triangles = new int[]{
-
-
-			//front face
-			0,2,3, // first triangle
-			3,1,0, // second triangle
-
-			//back face
-			4,6,7, // first triangle
-			7,5,4, // second triangle
-
-			//left face
-			8,10,11, // first triangle
-			11,9,8, // second triangle
-
-			//right face
-			12,14,15, // first triangle
-			15,13,12, // second triangle
-
-			//top face
-			16,18,19, // first triangle
-			19,17,16, // second triangle
-
-			//bottom face
-			20,22,23, // first triangle
-			23,21,20, // second triangle
-
-		};
-
-		//Add Normales region
-		Vector3 front 	= Vector3.forward;
-		Vector3 back 	= Vector3.back;
-		Vector3 left 	= Vector3.left;
-		Vector3 right 	= Vector3.right;
-		Vector3 up 		= Vector3.up;
-		Vector3 down 	= Vector3.down;
-
-		mesh.normals = new Vector3[]
-		{
-			// Front face
-			front, front, front, front,
-
-			// Back face
-			back, back, back, back,
-
-			// Left face
-			left, left, left, left,
-
-			// Right face
-			right, right, right, right,
-
-			// Top face
-			up, up, up, up,
-
-			// Bottom face
-			down, down, down, down
-
-		};
-		//end Normales region
-
-		//Add UVs region 
-		Vector2 u00 = new Vector2( 0f, 0f );
-		Vector2 u10 = new Vector2( 1f, 0f );
-		Vector2 u01 = new Vector2( 0f, 1f );
-		Vector2 u11 = new Vector2( 1f, 1f );
-
-		Vector2[] uvs = new Vector2[]
-		{
-			// Front face uv
-			u01, u00, u11, u10,
-
-			// Back face uv
-			u01, u00, u11, u10,
-
-			// Left face uv
-			u01, u00, u11, u10,
-
-			// Right face uv
-			u01, u00, u11, u10,
-
-			// Top face uv
-			u01, u00, u11, u10,
-
-			// Bottom face uv
-			u01, u00, u11, u10
-		};
-		//End UVs region
-
-
-		Material material = new Material (Shader.Find ("Standard"));
-		pyramidColor = Color.Lerp(pyramidColor, pyramidTargetColor, Time.deltaTime);
-		material.color = pyramidColor;
-		pyramidRenderer.material = material;
-
-		mesh.RecalculateNormals();
-		mesh.RecalculateBounds();
-		mesh.Optimize();
-	}
 	
 }
