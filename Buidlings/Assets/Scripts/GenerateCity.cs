@@ -11,46 +11,251 @@ public class GenerateCity : MonoBehaviour {
 	private RaycastHit hit;
 	private GameObject hitObject = null;
 
-	List<Vector3> mapEdgePoints = new List<Vector3>();
-
-	List<GameObject> areas = new List<GameObject>();
-	List<GameObject> areasIndexDelete = new List<GameObject>();
-
-	private List<Vector3> edgePoints = new List<Vector3>();
-	private int gameObjectCount = 0;
 	[Range(5,20)] public int minSize = 10;
 	[Range(100,400)] public int mapWidth = 200;
 	[Range(100,400)] public int mapHeight = 200;
 
+	private List<GameObject> areas = new List<GameObject>();
+	private List<GameObject> areasIndexDelete = new List<GameObject>();
+	private List<Vector3> edgePoints = new List<Vector3>();
+	private List<Vector3> mapEdgePoints = new List<Vector3>();
+
+
 	public GameObject sphere;
 	private List <GameObject> newSpheres = new List<GameObject>();
 
-	private int xlength = 0;
-	private int ylength = 0;
-	private int zlength = 0;
+	private int xSize, ySize, zSize, roundness, gameObjectCount ;
+	private bool roundTop,  roundFront, roundBack, roundSides = false;
 
-	private int xSize = 12;
-	private int ySize = 40;
-	private int zSize = 6;
 
-	private int roundness = 0;
-	private bool roundTop = false;
-	private bool roundFront = false;
-	private bool roundBack = false;
-	private bool roundSides = false;
+	private void Awake () {
 
-//	private void addMapEdges()
-//	{
-//		mapEdgePoints.Add( new Vector3(0, 0, 0));
-//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
-//		//mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
-//	}
+		this.transform.name = "city";
+		StartCoroutine(GenerateCityBuildings ());
+
+
+	}
+
+	private IEnumerator GenerateCityBuildings () 
+	{
+		WaitForSeconds wait = new WaitForSeconds (0.05f);
+
+
+		GameObject startCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		startCube.transform.localScale = new Vector3 (mapWidth,1,mapHeight);
+		startCube.transform.position = new Vector3(transform.position.x + mapWidth/2, transform.position.y,transform.position.z + mapHeight/2);
+		areas.Add (startCube);
+
+		addMapEdges ();
+
+
+		for (int i = 0; i < areas.Count; i++) {
+
+			float choice = Random.Range(0.0f,1.0f);
+			//Debug.Log (choice);
+
+			if (choice <= 0.5f){
+				splitX ( areas [i] );
+			}else{
+
+				splitZ ( areas [i] );
+			}
+			//yield return wait;
+		}
+
+		Debug.Log ("all Areas: "+areas.Count +"   toDeleted: "+areasIndexDelete.Count);
+
+
+		for (int j = 0; j< areas.Count; j++) {
+
+			for (int a = 0; a < areasIndexDelete.Count; a++) {
+
+				areas.Remove (areasIndexDelete [a]);
+			}
+			if (areas [j] == null) {
+
+				areas.RemoveAt(j);
+			}
+		}
+
+		Debug.Log ("areas: "+areas.Count);
+
+		yield return wait;
+
+
+		for (int i = 0; i < areas.Count; i++) {
+
+			GetVectors (areas [i]);
+		}
+
+		yield return wait;
+
+		print("map edges: "+mapEdgePoints.Count);
+		print ("areas edges: " + edgePoints.Count);
+
+		for (int i = 0; i < areas.Count; i++) {
+
+			xSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.x;
+			zSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.z;
+
+			//print ("bounds: " + areas[i].GetComponent<MeshRenderer> ().bounds);
+			//print ("size:  " + areas[i].GetComponent<MeshRenderer> ().bounds.size);
+
+
+			//move from center
+			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
+			float zz = areas[i].transform.position.z - ((float)zSize/2.0f);
+
+			Vector3 pivotPoint = new Vector3 (xx,areas[i].transform.position.y, zz);
+			createSphere (pivotPoint, newSpheres);
+
+			roundTop = (Random.Range (0, 2) == 0);
+			roundFront = (Random.Range (0, 2) == 0);
+			roundBack = (Random.Range (0, 2) == 0);
+			roundSides = (Random.Range (0, 2) == 0);
+
+			int c = 0;
+			for (int r = 0; r < 20; r++) {
+			
+				if (c < xSize && c < zSize && c < 5) {
+					c++;
+				}
+			}
+			roundness = Random.Range (0, c);
+
+			print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
+			print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
+
+
+
+			int splitSize = 25;
+
+			if (xSize > splitSize || zSize > splitSize) {
+
+				print ("over than split size");
+
+				int xCount = 1;
+				while (xSize / xCount > splitSize) {
+
+					//print ("x res search "+xSize/xCount);
+					xCount++;
+				}
+				float xOffset = xSize / xCount;
+				print ("x Offset: " + xOffset + "   x count: " + xCount);
+
+
+				int zCount = 1;
+				while (zSize / zCount > splitSize) {
+					//print (" z res search "+zSize/zCount);
+					zCount++;
+				}
+				float zOffset = zSize / zCount;
+
+				print ("z Offset: " + zOffset + "   z count: " + zCount);
+
+				List<Vector3> pointsInArea = new List<Vector3> ();
+				for (int s = 0; s < xCount; s++) {
+
+					float xP = pivotPoint.x + (s * xOffset);
+
+					for (int z = 0; z < zCount; z++) {
+
+						float zP = pivotPoint.z + (z * zOffset);
+
+						Vector3 finalP = new Vector3 (xP, pivotPoint.y, zP);
+						pointsInArea.Add(finalP);
+					}
+
+				}
+				//print ("all point: " + pointsInArea.Count);
+
+				xSize = (int)xOffset - 6;
+				zSize = (int)zOffset - 6;
+
+
+		
+				for (int o = 0; o < pointsInArea.Count ; o++) {
+
+					ySize = Random.Range (40, 60);
+					float distanceToCenter = Vector3.Distance (GetClosestEdge (areas [i].transform.position, mapEdgePoints), areas [i].transform.position);
+					float scaleHeight1 = (distanceToCenter + ySize) / 2;
+
+					print ("xSize:  "+xSize+"   height1: " + scaleHeight1+"   zSize  "+zSize);
+
+
+					//Vector3 buildingScale1 = new Vector3 (xSize, scaleHeight, zSize);
+					//					buildingScript.xSize = xSize;
+					//					buildingScript.ySize = (int)scaleHeight1;
+					//					buildingScript.zSize = zSize;
+
+					//Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 3);
+					//getBuilding("building" + i,buildingPos1);
+				}
+
+				print ("point in area: " + pointsInArea.Count);
+
+			} else {
+
+				int removeFromX = Random.Range(2,5);
+				int removeFromZ = Random.Range(2,5);
+				xSize -= removeFromX;
+				ySize = Random.Range (20, 40);
+				zSize -= removeFromZ;
+
+				float distanceToCenter = Vector3.Distance (GetClosestEdge (areas [i].transform.position, mapEdgePoints), areas [i].transform.position);
+				float scaleHeight2 = (distanceToCenter + ySize) / 3;
+
+				print ("xSize:  "+xSize+"   height2: " + scaleHeight2+"   zSize  "+zSize);
+
+				//Vector3 buildingScale2 = new Vector3 (xSize, scaleHeight, zSize);
+				//				buildingScript.xSize = xSize;
+				//				buildingScript.ySize = (int)scaleHeight2;
+				//				buildingScript.zSize = zSize;
+
+				Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX/2), this.transform.position.y, pivotPoint.z + (removeFromZ/2));
+
+
+				//getBuilding("building" + i,buildingPos2);
+			}
+
+
+		}
+
+
+	}
+	private void getBuilding(string name, Vector3 position){
+
+		//		GameObject building = buildingScript.CreateBuilding (position) as GameObject;//CreateCube() as GameObject;
+		//		building.transform.parent = this.transform;
+		//		building.name = name;
+		//
+	}
+	private GameObject createSphere(Vector3 pos , List <GameObject> objectArr){
+
+		GameObject a = (GameObject) Instantiate(sphere, pos, Quaternion.identity);
+		a.transform.localScale = new Vector3 (2.5f, 2.5f, 2.5f);
+		a.GetComponent<Renderer> ().material.color = Color.white;
+		a.transform.parent = this.transform;
+		objectArr.Add (a);
+
+		return a;
+	}
+
+
+	private void addMapEdges()
+	{
+		mapEdgePoints.Add( new Vector3(0, 0, 0));
+		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
+
+
+		//mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
+	}
 
 	Vector3 GetClosestEdge(Vector3 currentPosition, List<Vector3> targets)
 	{
@@ -99,176 +304,7 @@ public class GenerateCity : MonoBehaviour {
 			GetDistinctArrayList(arr, idx);
 		}
 	}
-
-
-
-	GameObject CreateCube()
-	{
-		GameObject cube = new GameObject ();
-
-		MeshFilter filter = cube.AddComponent< MeshFilter >();
-		Mesh mesh = filter.mesh;
-		mesh.Clear();
-
-		float lengthX = 1f; 
-		float lengthY = 1f; 
-		float lengthZ = 1f;  
-
-		//region Vertices
-		Vector3 p0 = new Vector3( 0, 0, lengthZ );
-		Vector3 p1 = new Vector3( lengthX, 0, lengthZ );
-		Vector3 p2 = new Vector3( lengthX, 0, 0 );
-		Vector3 p3 = new Vector3( 0, 0, 0 );	
-
-		Vector3 p4 = new Vector3( 0,	lengthY,  lengthZ );
-		Vector3 p5 = new Vector3( lengthX, 	lengthY,  lengthZ);
-		Vector3 p6 = new Vector3( lengthX, 	lengthY,  0 );
-		Vector3 p7 = new Vector3( 0,	lengthY,  0 );
-
-
-		Vector3[] vertices = new Vector3[]
-		{
-			// Bottom
-			p0, p1, p2, p3,
-
-			// Left
-			p7, p4, p0, p3,
-
-			// Front
-			p4, p5, p1, p0,
-
-			// Back
-			p6, p7, p3, p2,
-
-			// Right
-			p5, p6, p2, p1,
-
-			// Top
-			p7, p6, p5, p4
-		};
-		//endregion
-
-		//		//region Normales
-		Vector3 up 	= Vector3.up;
-		Vector3 down 	= Vector3.down;
-		Vector3 front 	= Vector3.forward;
-		Vector3 back 	= Vector3.back;
-		Vector3 left 	= Vector3.left;
-		Vector3 right 	= Vector3.right;
-
-		Vector3[] normales = new Vector3[]
-		{
-			// Bottom
-			down, down, down, down,
-
-			// Left
-			left, left, left, left,
-
-			// Front
-			front, front, front, front,
-
-			// Back
-			back, back, back, back,
-
-			// Right
-			right, right, right, right,
-
-			// Top
-			up, up, up, up
-		};
-		//endregion	
-
-		//top and bottom
-		Vector2 tbp1 = new Vector2( 0.68f, 0f);
-		Vector2 tbp2 = new Vector2( 1f, 0f );
-		Vector2 tbp3 = new Vector2( 1f, 1f );
-		Vector2 tbp4 = new Vector2( 0.68f, 1f );
-
-		//rest
-		Vector2 rp1 = new Vector2( 0f, 0f );
-		Vector2 rp2 = new Vector2( 0.68f, 0f );
-		Vector2 rp3 = new Vector2( 0.68f, 1f );
-		Vector2 rp4 = new Vector2( 0f, 1f );
-
-
-		Vector2[] uvs = new Vector2[]
-		{
-			// Bottom
-			//_11, _01, _00, _10,
-			tbp1,tbp2,tbp3,tbp4,
-
-			// Left
-			//_11, _01, _00, _10,
-			rp1,rp2,rp3,rp4,
-
-			// Front
-			//_11, _01, _00, _10,
-			rp1,rp2,rp3,rp4,
-
-			// Back
-			//_11, _01, _00, _10,
-			rp1,rp2,rp3,rp4,
-
-			// Right
-			//_11, _01, _00, _10,
-			rp1,rp2,rp3,rp4,
-
-			// Top
-			//_11, _01, _00, _10,
-			tbp1,tbp2,tbp3,tbp4
-		};
-		//endregion
-
-		//region Triangles
-		int[] triangles = new int[]
-		{
-			// Bottom
-			3, 1, 0,
-			3, 2, 1,			
-
-			// Left
-			3 + 4 * 1, 1 + 4 * 1, 0 + 4 * 1,
-			3 + 4 * 1, 2 + 4 * 1, 1 + 4 * 1,
-
-			// Front
-			3 + 4 * 2, 1 + 4 * 2, 0 + 4 * 2,
-			3 + 4 * 2, 2 + 4 * 2, 1 + 4 * 2,
-
-			// Back
-			3 + 4 * 3, 1 + 4 * 3, 0 + 4 * 3,
-			3 + 4 * 3, 2 + 4 * 3, 1 + 4 * 3,
-
-			// Right
-			3 + 4 * 4, 1 + 4 * 4, 0 + 4 * 4,
-			3 + 4 * 4, 2 + 4 * 4, 1 + 4 * 4,
-
-			// Top
-			3 + 4 * 5, 1 + 4 * 5, 0 + 4 * 5,
-			3 + 4 * 5, 2 + 4 * 5, 1 + 4 * 5,
-
-		};
-		//endregion
-
-
-		MeshRenderer meshRenderer = cube.AddComponent<MeshRenderer> ();
-		Material material = new Material (Shader.Find ("Standard"));
-		material.color = Color.Lerp(Color.white, new Color((48.0f/255.0f),(48.0f/255.0f),(80.0f/255.0f)), Random.Range(0.0f, 1.0f));
-
-		meshRenderer.material = material;
-
-		MeshCollider meshCollider = cube.AddComponent<MeshCollider> ();
-		meshCollider.isTrigger = false;
-
-		mesh.vertices = vertices;
-		mesh.triangles = triangles;
-		mesh.uv = uvs;
-		mesh.normals = normales;
-		mesh.RecalculateBounds();
-		mesh.Optimize();
-
-		return cube as GameObject;
-	}
-
+		
 	void GetVectors ( GameObject cube) 
 	{
 		Vector3[] v = new Vector3[4];
@@ -284,118 +320,6 @@ public class GenerateCity : MonoBehaviour {
 		GetDistinctArrayList (edgePoints, 0);
 
 	}
-
-	private IEnumerator GenerateAreas () 
-	{
-		WaitForSeconds wait = new WaitForSeconds (0.05f);
-
-		GameObject startCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-		startCube.transform.localScale = new Vector3 (mapWidth,1,mapHeight);
-		startCube.transform.position = new Vector3(transform.position.x + mapWidth/2, transform.position.y,transform.position.z + mapHeight/2);
-		
-		areas.Add (startCube);
-
-		for (int i = 0; i < areas.Count; i++) {
-
-			float choice = Random.Range(0.0f,1.0f);
-			//Debug.Log (choice);
-
-			if (choice <= 0.5f){
-				splitX ( areas [i] );
-			}else{
-
-				splitZ ( areas [i] );
-			}
-
-			//yield return wait;
-		}
-
-		Debug.Log ("all Areas: "+areas.Count +"   toDeleted: "+areasIndexDelete.Count);
-
-
-		for (int j = 0; j< areas.Count; j++) {
-
-			for (int a = 0; a < areasIndexDelete.Count; a++) {
-
-				areas.Remove (areasIndexDelete [a]);
-			}
-			if (areas [j] == null) {
-				
-				areas.RemoveAt(j);
-			}
-		}
-
-		Debug.Log ("areas: "+areas.Count);
-
-		yield return wait;
-
-
-		for (int i = 0; i < areas.Count; i++) {
-
-			GetVectors (areas [i]);
-		}
-
-		yield return wait;
-
-		print("map edges: "+mapEdgePoints.Count);
-		print ("areas edges: " + edgePoints.Count);
-
-		for (int i = 0; i < areas.Count; i++) {
-
-//			xSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.x;
-//			zSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.z;
-//
-//			//move from center
-//			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
-//			float zz = areas[i].transform.position.z - ((float)zSize/2.0f);
-//
-//			Vector3 pivotCenter = new Vector3 (xx,areas[i].transform.position.y, zz);
-//
-//			createSphere (pivotCenter, newSpheres);
-		}
-
-
-
-
-//		for (int i = 0; i < areas.Count; i++) {
-//
-//			GameObject buildingMesh = CreateCube ();
-//			buildingMesh.transform.parent = this.transform;
-//			buildingMesh.name = "building"; ///+ b;
-//
-//
-//			float distanceToCenter = Vector3.Distance (GetClosestEdge(areas [i].transform.position,mapEdgePoints), areas [i].transform.position);
-//			float scaleX = 	Mathf.Clamp(areas [i].transform.localScale.x / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.x / Random.Range(1.5f,20.0f), areas [i].transform.localScale.x - 5);
-//			float scaleHeight = distanceToCenter;//Random.Range ((mapHeight/15), (mapHeight/3));
-//			float scaleZ = 	Mathf.Clamp(areas [i].transform.localScale.z / (Random.Range(1.5f, 4.0f)), areas [i].transform.localScale.z / Random.Range(1.5f,20.0f), areas [i].transform.localScale.z - 5);
-//
-//			buildingMesh.transform.localScale = new Vector3 (scaleX, scaleHeight, scaleZ);
-//
-//			float xPos = areas [i].transform.position.x - (buildingMesh.transform.localScale.x / 2);
-//			float zPos = areas [i].transform.position.z - (buildingMesh.transform.localScale.z / 2);
-//			buildingMesh.transform.position = new Vector3 (xPos, this.transform.position.y, zPos);
-//
-//			yield return wait3;
-//		}
-
-
-
-		//		yield return wait;
-		//Debug.Break();
-	}
-
-	private GameObject createSphere(Vector3 pos , List <GameObject> objectArr){
-
-		GameObject a = (GameObject) Instantiate(sphere, pos, Quaternion.identity);
-		a.transform.localScale = new Vector3 (2.5f, 2.5f, 2.5f);
-		a.GetComponent<Renderer> ().material.color = Color.white;
-		a.transform.parent = this.transform;
-		objectArr.Add (a);
-
-		return a;
-	}
-
-
 
 	void splitX(GameObject splitMe){
 
@@ -468,15 +392,7 @@ public class GenerateCity : MonoBehaviour {
 
 		}
 	}
-
-	private void Awake () {
-
-		this.transform.name = "city";
-		StartCoroutine(GenerateAreas ());
-		//addMapEdges ();
-
-
-	}
+		
 
 	void Update()
 	{
@@ -494,34 +410,12 @@ public class GenerateCity : MonoBehaviour {
 						//Debug.Log (areas.IndexOf(hit.collider.gameObject));
 						hitObject.GetComponent<Renderer> ().material.color = new Color (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
 
-
-//						if (hitObject.transform.localScale.x > 20){
-//						hitObject.GetComponent<Renderer>().material.color = new Color(Random.Range(0.0f,1.0f),Random.Range(0.0f,1.0f), Random.Range(0.0f,1.0f));
-
-//							splitX ( hitObject );	
-//						}else if (hitObject.transform.localScale.z > 20){
-//
-//							splitZ ( hitObject );	
-//						}
 						Debug.Log ("scale: "+hitObject.transform.localScale +"    bounds size: "+ hitObject.GetComponent<Renderer>().bounds.size);
 
 
 					}
 				}
-
-				if (hit.collider.gameObject.name == "building") {
-					//Debug.Log (hit.collider.gameObject.transform.localScale+"  size x: " + hit.collider.gameObject.GetComponent<MeshCollider> ().bounds.min + "  size z:" + hit.collider.gameObject.GetComponent<MeshCollider> ().bounds.max);
-
-
-					//float distance = Vector3.Distance (new Vector3(mapWidth/2, 0, mapHeight/2), hit.collider.gameObject.transform.position);
-					//Debug.Log (GetClosestEnemy(hit.collider.gameObject.transform.position,mapEdgePoints)+"   dist: "+distance);
-
-
-				}
-				//hitObject = hit.collider.gameObject;
-				//Debug.Log (hit.collider.name);
-
-
+					
 			}
 		}
 

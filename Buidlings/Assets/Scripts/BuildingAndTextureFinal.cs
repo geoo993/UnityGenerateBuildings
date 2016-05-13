@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(TextureGenerator))]
 
-public class BuidlingAndTextureFinal2 : MonoBehaviour {
+public class BuildingAndTextureFinal : MonoBehaviour {
 
 
 	public GameObject sphere;
@@ -29,8 +29,6 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 	private bool roundFront = false;
 	private bool roundBack = false;
 	private bool roundSides = false;
-	private bool roof = false;
-
 
 	private int offset = 0;
 	private int midY = 0;
@@ -39,7 +37,6 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 	private List<int[]> controlPoints = new List<int[]>();
 	private List<int> listOfVerticesIndexes = new List<int>();
 	private List <Vector3> verticesCopy = new List<Vector3> ();
-
 
 	private List<int> pivotControlPoint= new List<int>();
 	private List<int> topControlPointIndexes = new List<int>();
@@ -51,8 +48,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 	private MeshCollider meshCollider;
 	private MeshFilter meshFilter;
 	private Renderer meshRenderer;
-	private Mesh mesh;
-
+	private Mesh mesh = null;
 
 	//private Vector3[] vertices = new Vector3[]{};
 	private List<Vector3> vertices = new List<Vector3>();
@@ -66,32 +62,23 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 	private int[] triangles; 
 	//private List<int> triangles = new List<int>();
 
-	List<int> mee = new List<int> ();
-
-
 	private static int
 	SetQuad (int[] triangles, int i, int v00, int v10, int v01, int v11) {
-
 		triangles[i] = v00;
-		triangles[i + 4] = v01;
-		triangles[i + 1] = triangles[i + 4];
-		triangles[i + 3] = v10;
-		triangles[i + 2] = triangles[i + 3];
+		triangles[i + 1] = triangles[i + 4] = v01;
+		triangles[i + 2] = triangles[i + 3] = v10;
 		triangles[i + 5] = v11;
-
-
-
 		return i + 6;
 	}
 
 
-	private void RandomBuildingProperties()
+	public void RandomBuildingProperties()
 	{
 
 		float xScale = Random.Range (1.0f,6.0f);
 		float zScale = Random.Range (1.0f,6.0f);
 
-		transform.localScale = new Vector3 (xScale, transform.localScale.y, zScale);
+		this.transform.localScale = new Vector3 (xScale, this.transform.localScale.y, zScale);
 
 		xSize = (int)GetComponent<MeshRenderer> ().bounds.size.x;
 		zSize = (int)GetComponent<MeshRenderer> ().bounds.size.z;
@@ -107,8 +94,6 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 
 		if (xSize > splitSize || zSize > splitSize) {
 
-			//print (xSize);
-
 			int xCount = 1;
 			while (xSize / xCount > splitSize) {
 				
@@ -116,7 +101,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 				xCount++;
 			}
 			float xOffset = xSize / xCount;
-			print ("x Offset: " + xOffset + "   x count: " + xCount);
+			//print ("x Offset: " + xOffset + "   x count: " + xCount);
 
 
 			int zCount = 1;
@@ -126,7 +111,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 			}
 			float zOffset = zSize / zCount;
 
-			print ("z Offset: " + zOffset + "   z count: " + zCount);
+			//print ("z Offset: " + zOffset + "   z count: " + zCount);
 
 
 			for (int s = 0; s < xCount; s++) {
@@ -152,7 +137,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 				}
 
 			}
-			print ("all point: " + floorCheck.Count);
+			//print ("all point: " + floorCheck.Count);
 
 
 			xSize = (int)xOffset - 6;
@@ -164,15 +149,14 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 			//		zSize = Random.Range (4, 20);
 
 
-			print ("bounds: " + GetComponent<MeshRenderer> ().bounds);
-			print ("size:  " + GetComponent<MeshRenderer> ().bounds.size);
+			//print ("bounds: " + plane.GetComponent<MeshRenderer> ().bounds);
+			//print ("size:  " + plane.GetComponent<MeshRenderer> ().bounds.size);
 
 
 			roundTop = (Random.Range (0, 2) == 0);
 			roundFront = (Random.Range (0, 2) == 0);
 			roundBack = (Random.Range (0, 2) == 0);
 			roundSides = (Random.Range (0, 2) == 0);
-			roof = (Random.Range (0, 2) == 0);
 
 
 			int i = 0;
@@ -184,8 +168,8 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 			}
 			roundness = Random.Range (0, i);
 
-			print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
-			print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
+			//print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
+			//print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
 
 			//this.transform.position = new Vector3 (-xSize / 2, this.transform.position.y, -zSize / 2);
 			this.transform.position = new Vector3 (
@@ -204,183 +188,192 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 		}
 			
 	}
-	private void CreateControllPointsIndexes ()
+
+	public static void CreateControllPointsIndexes (int xLength, int yLength, int zLength, int xSizeX, int ySizeY, int zSizeZ, int xOffSet, List<int[]> points)
 	{
-		xlength = xSize + 1;
-		ylength = ySize + 1;
-		zlength = zSize + 1;
+//		xlength = xSize + 1;
+//		ylength = ySize + 1;
+//		zlength = zSize + 1;
 
-		int zExtra = zSize - 2;
-		offset = ((xlength * 2 ) + (zSize - 1 + zExtra)) ;
+		xLength = xSizeX + 1;
+		yLength = ySizeY + 1;
+		zLength = zSizeZ + 1;
 
-		//Debug.Log (" offset " + offset);
+		int zExtra = zSizeZ - 2;
+		xOffSet = ((xLength * 2 ) + (zSizeZ - 1 + zExtra)) ;
+
+		//Debug.Log (" offset " + xOffSet);
 	
-		for (int x = 0; x < offset + 1; x++) {
+		for (int x = 0; x < xOffSet + 1; x++) {
 
-			for (int z = 0; z < zlength; z++)
+			for (int z = 0; z < zLength; z++)
 			{
 
 				List<int> innerArray = new List<int>();
 
-				for (int y = 0; y < ylength; y++)
+				for (int y = 0; y < yLength; y++)
 				{
-					int myPos = (((offset * y) + x) + y);
+					int myPos = (((xOffSet * y) + x) + y);
 					innerArray.Add (myPos);
 					//print(innerArray[y]);
 
 				}
-				controlPoints.Insert(x, innerArray.ToArray());
+				points.Insert(x, innerArray.ToArray());
 			}
 
 		}
 
+
+		//print("control points: "+points.Count);
 	}
 
-	private void CreateMesh()
+	private void CreateMesh(MeshFilter mf, Mesh m)
 	{
 
-		meshFilter = GetComponent<MeshFilter>();
-		if (meshFilter == null){
+		mf = GetComponent<MeshFilter>();
+		if (mf == null){
 			Debug.LogError("MeshFilter not found!");
 			return;
 		}
 
-		mesh = meshFilter.sharedMesh;
-		if (mesh == null){
-			meshFilter.mesh = new Mesh();
-			mesh = meshFilter.sharedMesh;
+		m = mf.sharedMesh;
+		if (m == null) {
+			mf.mesh = new Mesh();
+			m = mf.sharedMesh;
 		}
-		mesh.name = "building mesh";
+		m.name = "building mesh";
 
-		mesh.Clear();
+		m.Clear();
 	}
-		
-	private void CreateVertices() {
+
+	public void CreateVertices(List <Vector3> vert, List <Vector3> norm,List <Vector2> uvv, int xSizeX, int ySizeY, int zSizeZ, int roundn, 
+		bool sides, bool top, bool front, bool back) {
 
 
 		int cornerVertices = 8;
-		int edgeVertices = (xSize + ySize + zSize - 3) * 4;
+		int edgeVertices = (xSizeX + ySizeY + zSizeZ - 3) * 4;
 
 		int faceVertices = (
-			(xSize - 1) * (ySize - 1) +
-			(xSize - 1) * (zSize - 1) +
-			(ySize - 1) * (zSize - 1)) * 2;
+			(xSizeX - 1) * (ySizeY - 1) +
+			(xSizeX - 1) * (zSizeZ - 1) +
+			(ySizeY - 1) * (zSizeZ - 1)) * 2;
 
 		int verticesLength = cornerVertices + edgeVertices + faceVertices;
-		//vertices = new Vector3[verticesLength];
-		//normals = new Vector3[verticesLength];
-		//uv = new Vector2[verticesLength];
+		//vert = new Vector3[verticesLength];
+		//norm = new Vector3[verticesLength];
+		//uvv = new Vector2[verticesLength];
 
-		print ("vertices Length: "+verticesLength);
+		print ("vert counts" + verticesLength);
 
 		int v = 0;
 		// sides
-		for (int y = 0; y <= ySize; y++) {
-			for (int x = 0; x <= xSize; x++) {
-				SetVertex(v++, x, y, 0);
+		for (int y = 0; y <= ySizeY; y++) {
+			for (int x = 0; x <= xSizeX; x++) {
+				SetVertex(vert,norm,uvv,v++, x, y, 0,xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
-			for (int z = 1; z <= zSize; z++) {
-				SetVertex(v++, xSize, y, z);
+			for (int z = 1; z <= zSizeZ; z++) {
+				SetVertex(vert,norm,uvv,v++, xSize, y, z,xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
-			for (int x = xSize - 1; x >= 0; x--) {
-				SetVertex(v++, x, y, zSize);
+			for (int x = xSizeX - 1; x >= 0; x--) {
+				SetVertex(vert,norm,uvv,v++, x, y, zSizeZ,xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
 
-			for (int z = zSize - 1; z > 0; z--) {
-				SetVertex(v++, 0, y, z);
+			for (int z = zSizeZ - 1; z > 0; z--) {
+				SetVertex(vert,norm,uvv,v++, 0, y, z,xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
 		}
 
 
 		// top 
-		for (int z = 1; z < zSize; z++) {
-			for (int x = 1; x < xSize; x++) {
-				SetVertex(v++, x, ySize, z);
+		for (int z = 1; z < zSizeZ; z++) {
+			for (int x = 1; x < xSizeX; x++) {
+				SetVertex(vert,norm,uvv,v++, x, ySizeY, z,xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
 		}
 		//bottom
-		for (int z = 1; z < zSize; z++) {
-			for (int x = 1; x < xSize; x++) {
-				SetVertex(v++, x, 0, z);
+		for (int z = 1; z < zSizeZ; z++) {
+			for (int x = 1; x < xSizeX; x++) {
+				SetVertex(vert,norm,uvv, v++, x, 0, z, xSizeX, ySizeY,zSizeZ,roundn,sides,top,front,back);
 			}
 		}
 
-
-
 	}
-	private void SetVertex (int i, int x, int y, int z) {
-		
+
+	public void SetVertex (List <Vector3>  verts, List <Vector3> norm, List <Vector2> uuvv, int i, int x, int y, int z, int xSizeX, int ySizeY, int zSizeZ, int curv, 
+		bool sides, bool top, bool front, bool back) {
+
 		Vector3 vect = new Vector3 (x, y, z);
-		//vertices[i] = new Vector3(x, y, z);
 		Vector3 inner = vect;
 
-			
+
 		////sides
-		if (x < roundness) {
-			if (roundSides) {
-				inner.x = roundness;
+		if (x < curv) {
+			
+			if (sides) {
+				inner.x = curv;
 			} else {
 				inner.x = 0;
 			}
-		}
-		else if (x > xSize - roundness) {
 
-			if (roundSides) {
-				inner.x = xSize - roundness;
+		}
+		else if (x > xSizeX - curv) {
+
+			if (sides) {
+				inner.x = xSizeX - curv;
 			} else {
-				inner.x = xSize; 
+				inner.x = xSizeX; 
 			}
 		}
 
 		////top and bottom
-		if (y < roundness) {
-			//bottom rounder
-			//inner.y = roundness;
+		if (y < curv) {
+			
 		}
-		else if (y > ySize - roundness) {
-			// top rounder
-			//inner.y = 0;
-			if (roundTop) {
-				inner.y = ySize - roundness;
+		else if (y > ySizeY - curv) {
+			
+			if (top) {
+				inner.y = ySizeY - curv;
 			} else {
-				inner.y = ySize; 
+				inner.y = ySizeY; 
 			}
 		}
 
 		////front and back
-		if (z < roundness) {
-			// add or disable front rounder
-			if (roundFront) {
-				inner.z = roundness;
+		if (z < curv) {
+			
+			if (front) {
+				inner.z = curv;
 			} else {
 				inner.z = 0;
 			}
 		}
-		else if (z > zSize - roundness) {
+		else if (z > zSizeZ - curv) {
+			
 			//add or disable back rounder
-			if (roundBack) {
-				inner.z = zSize - roundness;
+			if (back) {
+				inner.z = zSizeZ - curv;
 			} else {
-				inner.z = zSize;
+				inner.z = zSizeZ;
 			}
 		}
 
-//		normals[i] = (vect - inner).normalized;
-//		vertices[i] = inner + normals[i] * roundness;
-//		uv[i] = new Vector2((float)x / ( xSize), (float)y / (ySize ));
-
-		normals.Add((vect - inner).normalized);
-		vertices.Add(inner + normals[i] * roundness);
-		uv.Add(new Vector2((float)x / ( xSize), (float)y / (ySize) ));
+		//norm[i] = (vect - inner).normalized;
+		//verts[i] = inner + norm[i] * curv;
+		//uuvv[i] = new Vector2((float)x / ( xSizeX), (float)y / (ySizeY ));
 
 
+		norm.Add((vect - inner).normalized);
+		//verts[i] = inner + norm[i] * curv;
+		verts.Add(inner + norm[i] * curv);
+		uuvv.Add(new Vector2((float)x / ( xSizeX), (float)y / (ySizeY) ));
+
+		//print (verts.Length);
 	}
 
 	private void CreateTriangles () {
 		
 		int quads = (xSize * ySize + xSize * zSize + ySize * zSize) * 2;
-		int triLength = quads * 6;
-		triangles = new int[triLength];
+		triangles = new int[quads * 6];
 		int ring = (xSize + zSize) * 2;
 		int t = 0, v = 0;
 
@@ -695,7 +688,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 					vertices [controlPoints [sidesControlPointIndexes [i]] [z]].y,
 					vertices [controlPoints [sidesControlPointIndexes [i]] [z]].z);
 				}
-//				changeColor (newSpheres [sidesControlPointIndexes [i]], Color.white);
+
 			}
 		}else{
 			
@@ -720,6 +713,7 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 						vertices [controlPoints [sidesControlPointIndexes [aa]] [z]].y,
 						vertices [controlPoints [sidesControlPointIndexes [aa]] [z]].z);
 				}
+
 				//print (sidesControlPointIndexes[aa]);
 			}
 		}
@@ -808,15 +802,95 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 
 	}
 
-
-
-	void Awake ()
+	void Start ()
 	{
 
 		this.name = "dynamic object";
 
 		RandomBuildingProperties ();
-//		CreateControllPointsIndexes ();
+
+		CreateControllPointsIndexes (xlength, ylength, zlength, xSize, ySize, zSize, offset, controlPoints);
+		//CreateControllPointsIndexes ();
+	
+		CreateMesh (meshFilter, mesh);
+//		//CreateMesh ();
+
+
+		CreateVertices(vertices, normals, uv, xSize, ySize, zSize, roundness, 
+			roundSides, roundTop, roundFront, roundBack);
+		//CreateVertices();
+		print("vertices: "+vertices.Count);
+		print("normals: "+normals.Count);
+		print("uv: "+uv.Count);
+
+
+		GetIndexes ();
+		CreatePivotControlPoints ();
+		RandomOutlinesGeneration ();
+
+
+		CreateTriangles();
+//		AddPropertiesToMesh ();
+//		CreateColliders();
+//		CreateColorAndtexture ();
+
+
+	}
+
+	void Update()
+	{
+		
+
+//		if (Input.GetKeyDown ("space")) {
+//			//RandomBuildingProperties ();
+//			removeAll ();
+//			addAgain ();
+//		}
+//
+
+
+	}
+
+//	void removeAll(){
+//
+//		meshFilter.sharedMesh = null;
+//		meshCollider.sharedMesh = null;
+//		mesh.Clear();
+//		vertices = null;
+//		triangles = null; 
+//		normals = null;
+//		uv = null;
+//
+//
+//		foreach (GameObject spheres in newSpheres) {
+//			DestroyImmediate (spheres);
+//
+//		}
+//		newSpheres.Clear ();
+//
+//		foreach (GameObject floorPoints in floorCheck) {
+//			DestroyImmediate (floorPoints);
+//		}
+//		floorCheck.Clear ();
+//
+//		controlPoints.Clear();
+//		listOfVerticesIndexes.Clear();
+//		verticesCopy.Clear();
+//
+//		pivotControlPoint.Clear();
+//		topControlPointIndexes.Clear (); 
+//		frontControlPointIndexes.Clear();
+//		backControlPointIndexes.Clear (); 
+//		sidesControlPointIndexes.Clear();
+//	
+//	
+//	}
+
+
+//	void addAgain(){
+
+//		RandomBuildingProperties ();
+//		//CreateControllPointsIndexes ();
 //		CreateMesh ();
 //		CreateVertices();
 //
@@ -829,70 +903,8 @@ public class BuidlingAndTextureFinal2 : MonoBehaviour {
 //		AddPropertiesToMesh ();
 //		CreateColliders();
 //		CreateColorAndtexture ();
-//
-//
 
-	}
-
-	void Update()
-	{
-		
-	}
-
-	void removeAll(){
-
-		meshFilter.sharedMesh = null;
-		meshCollider.sharedMesh = null;
-		mesh.Clear();
-		vertices = null;
-		triangles = null; 
-		normals = null;
-		uv = null;
-
-
-		foreach (GameObject spheres in newSpheres) {
-			DestroyImmediate (spheres);
-
-		}
-		newSpheres.Clear ();
-
-		foreach (GameObject floorPoints in floorCheck) {
-			DestroyImmediate (floorPoints);
-		}
-		floorCheck.Clear ();
-
-		controlPoints.Clear();
-		listOfVerticesIndexes.Clear();
-		verticesCopy.Clear();
-
-		pivotControlPoint.Clear();
-		topControlPointIndexes.Clear (); 
-		frontControlPointIndexes.Clear();
-		backControlPointIndexes.Clear (); 
-		sidesControlPointIndexes.Clear();
-	
-	
-	}
-
-
-	void addAgain(){
-
-		RandomBuildingProperties ();
-		CreateControllPointsIndexes ();
-		CreateMesh ();
-		CreateVertices();
-
-		GetIndexes ();
-		CreatePivotControlPoints ();
-		RandomOutlinesGeneration ();
-
-
-		CreateTriangles();
-		AddPropertiesToMesh ();
-		CreateColliders();
-		CreateColorAndtexture ();
-
-	}
+//	}
 
 
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 
 
-public class BuidlingMesh : MonoBehaviour {
+public class BuildingMesh : MonoBehaviour {
 
 	public Camera mainCamera;
 	private Ray ray;
