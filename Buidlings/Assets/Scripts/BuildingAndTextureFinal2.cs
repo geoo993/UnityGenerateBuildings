@@ -45,8 +45,6 @@ public class BuildingAndTextureFinal2 : MonoBehaviour {
 	private int[] triangles; 
 	//private List<int> triangles = new List<int>();
 
-	private List<int> tri = new List<int>();
-
 
 	private static int
 	SetQuad (int[] triangles, int i, int v00, int v10, int v01, int v11) {
