@@ -156,7 +156,9 @@ public class InvertedCity : MonoBehaviour {
 			//print ("bounds: " + areas[i].GetComponent<MeshRenderer> ().bounds);
 			//print ("size:  " + areas[i].GetComponent<MeshRenderer> ().bounds.size);
 
-			float distanceToCenter = Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition);
+			float distanceToCenter = Vector3.Distance (new Vector3(mapWidth/2, 0, mapHeight/2), areas [i].transform.localPosition);
+
+			float distanceToMapEdge = Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition);
 
 			//move from center
 			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
@@ -164,7 +166,7 @@ public class InvertedCity : MonoBehaviour {
 
 			Vector3 pivotPoint = new Vector3 (xx,areas[i].transform.position.y, zz);
 		
-			roundTop = true;//(Random.Range (0, 2) == 0);
+			roundTop = (Random.Range (0, 2) == 0);
 			roundFront = (Random.Range (0, 2) == 0);
 			roundBack = (Random.Range (0, 2) == 0);
 			roundSides = (Random.Range (0, 2) == 0);
@@ -224,17 +226,16 @@ public class InvertedCity : MonoBehaviour {
 					}
 					//print ("all point: " + pointsInArea.Count);
 
-					xSize = (int)xOffset - 6;
-					zSize = (int)zOffset - 6;
+					xSize = (int)xOffset - 8;
+					zSize = (int)zOffset - 8;
 
 
-		
 					for (int o = 0; o < pointsInArea.Count; o++) {
 
-						ySize = Random.Range (40, 60) + ((int)distanceToCenter / 2);
+						ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); //(int)distanceToCenter;
 						print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
-						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 3);
+						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 4);
 						getBuilding ("building" + i, buildingPos1);
 					}
 
@@ -242,15 +243,15 @@ public class InvertedCity : MonoBehaviour {
 
 				} else {
 
-					int removeFromX = Random.Range (2, 5);
-					int removeFromZ = Random.Range (2, 5);
+					int removeFromX = Random.Range (2, 6);
+					int removeFromZ = Random.Range (2, 8);
 					xSize -= removeFromX;
-					ySize = Random.Range (20, 40) + ((int)distanceToCenter / 2);
+					ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); // (int)distanceToCenter;
 					zSize -= removeFromZ;
 
 					print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
-					Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX / 2), this.transform.position.y, pivotPoint.z + (removeFromZ / 2));
+					Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX / 2), this.transform.position.y, pivotPoint.z + (removeFromZ / 3));
 
 
 					getBuilding ("building" + i, buildingPos2);
@@ -295,17 +296,17 @@ public class InvertedCity : MonoBehaviour {
 
 	private void addMapEdges()
 	{
-//		mapEdgePoints.Add( new Vector3(0, 0, 0));
-//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
-//		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
-//		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
-//
+		mapEdgePoints.Add( new Vector3(0, 0, 0));
+		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, 0)); //center
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, 0));
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight/2));
+		mapEdgePoints.Add( new Vector3(mapWidth, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(0, 0, mapHeight));
+		mapEdgePoints.Add( new Vector3(0, 0, mapHeight/2));
 
-		mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
+
+		//mapEdgePoints.Add( new Vector3(mapWidth/2, 0, mapHeight/2)); //center
 	}
 
 	Vector3 GetClosestEdge(Vector3 currentPosition, List<Vector3> targets)
@@ -731,7 +732,7 @@ public class InvertedCity : MonoBehaviour {
 
 			vertices [topControlPointIndexes [y]] = new Vector3 (
 				vertices [topControlPointIndexes [y]].x,
-				vertices [topControlPointIndexes [y]].y + +tRandOffset,
+				vertices [topControlPointIndexes [y]].y + tRandOffset,
 				vertices [topControlPointIndexes [y]].z);
 
 		}
@@ -948,60 +949,86 @@ public class InvertedCity : MonoBehaviour {
 	}
 
 
+	public Texture[] texturesType1 = new Texture[]{};
+	public Texture[] texturesType2 = new Texture[]{};
+	private bool textureType = false;
+
 	private void CreateColorAndtexture(MeshRenderer mR) {
 
 
-		Material material = new Material (Shader.Find (".ShaderExample/TextureSplatting"));
+		////Material material = new Material (Shader.Find (".ShaderExample/TextureSplatting"));
 		//Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
 		//Material material = new Material (Shader.Find ("Standard"));
 		//material.color = Color.Lerp(Color.white, new Color((48.0f/255.0f),(48.0f/255.0f),(80.0f/255.0f)), Random.Range(0.0f, 1.0f));
 
 
-		Texture[] smallStripes = new Texture[] {
-			Resources.Load ("TextureStripe2") as Texture,
-			Resources.Load ("TextureStripe7") as Texture,
-			Resources.Load ("TextureStripe8") as Texture,
-			Resources.Load ("TextureStripe9") as Texture
-		};
-		int pickSmallStripes = (int)Mathf.Floor (Random.value * smallStripes.Length);
+//		Texture[] smallStripes = new Texture[] {
+//			Resources.Load ("TextureStripe2") as Texture,
+//			Resources.Load ("TextureStripe7") as Texture,
+//			Resources.Load ("TextureStripe8") as Texture,
+//			Resources.Load ("TextureStripe9") as Texture
+//		};
+//		int pickSmallStripes = (int)Mathf.Floor (Random.value * smallStripes.Length);
+//
+//
+//		Texture[] bigStripes = new Texture[] {
+//
+//			Resources.Load ("TextureStripe1") as Texture,
+//			Resources.Load ("TextureStripe3") as Texture,
+//			Resources.Load ("TextureStripe4") as Texture,
+//			Resources.Load ("TextureStripe5") as Texture,
+//			Resources.Load ("TextureStripe6") as Texture,
+//			Resources.Load ("TextureStripe10") as Texture
+//		};
+//		int pickBigStripes = (int)Mathf.Floor (Random.value * bigStripes.Length);
+//
+//		Texture[] bigStripesInverted = new Texture[] {
+//
+//			Resources.Load ("TextureStripe11") as Texture,
+//			Resources.Load ("TextureStripe33") as Texture,
+//			Resources.Load ("TextureStripe44") as Texture,
+//			Resources.Load ("TextureStripe55") as Texture,
+//			Resources.Load ("TextureStripe66") as Texture
+//		};
+//		int pickbigStripesInverted = (int)Mathf.Floor (Random.value * bigStripesInverted.Length);
+//
+//		Texture small = smallStripes [pickSmallStripes] as Texture;
+//		Texture big = bigStripes [pickBigStripes] as Texture;
+//		Texture inverted = bigStripesInverted [pickbigStripesInverted] as Texture;
+//
+//
+//
+//
+//
+//		material.SetTexture ("_MainTex", small);
+//		material.SetTextureScale ("_MainTex", new Vector2(2,Random.Range(2.0f,4.0f))); 
+//
+//		material.SetFloat ("_White", Random.Range(0.0f , 1.0f));
+//		material.SetFloat ("_Transition1", Random.Range (0.25f, 1.0f));
+//
+//		material.SetTexture ("_Texture1", inverted);
+//		material.SetTexture ("_Texture2", big);
+//
+//		mR.material = material;
+//
 
 
-		Texture[] bigStripes = new Texture[] {
+		Material m = new Material(Shader.Find("Self-Illumin/Diffuse"));
 
-			Resources.Load ("TextureStripe1") as Texture,
-			Resources.Load ("TextureStripe3") as Texture,
-			Resources.Load ("TextureStripe4") as Texture,
-			Resources.Load ("TextureStripe5") as Texture,
-			Resources.Load ("TextureStripe6") as Texture,
-			Resources.Load ("TextureStripe10") as Texture
-		};
-		int pickBigStripes = (int)Mathf.Floor (Random.value * bigStripes.Length);
-
-		Texture[] bigStripesInverted = new Texture[] {
-
-			Resources.Load ("TextureStripe11") as Texture,
-			Resources.Load ("TextureStripe33") as Texture,
-			Resources.Load ("TextureStripe44") as Texture,
-			Resources.Load ("TextureStripe55") as Texture,
-			Resources.Load ("TextureStripe66") as Texture
-		};
-		int pickbigStripesInverted = (int)Mathf.Floor (Random.value * bigStripesInverted.Length);
-
-		Texture small = smallStripes [pickSmallStripes] as Texture;
-		Texture big = bigStripes [pickBigStripes] as Texture;
-		Texture inverted = bigStripesInverted [pickbigStripesInverted] as Texture;
+		textureType = (Random.Range (0, 2) == 0);
 
 
-		material.SetTexture ("_MainTex", small);
-		material.SetTextureScale ("_MainTex", new Vector2(2,Random.Range(2.0f,4.0f))); 
+		if (textureType) {
+			m.SetTexture("_MainTex", texturesType1[Random.Range(0,texturesType1.Length)]);
+			m.SetTextureScale ("_MainTex", new Vector2 (8, 8));
+			m.SetColor ("_Color", new Color (0.5f, 0.5f, 0.5f));
+		} else {
+			m.SetTexture("_MainTex", texturesType2[Random.Range(0,texturesType2.Length)]);
+			m.SetTextureScale ("_MainTex", new Vector2 (16, 16));
+		}
 
-		material.SetFloat ("_White", Random.Range(0.0f , 1.0f));
-		material.SetFloat ("_Transition1", Random.Range (0.25f, 1.0f));
+		mR.material = m;
 
-		material.SetTexture ("_Texture1", inverted);
-		material.SetTexture ("_Texture2", big);
-
-		mR.material = material;
 
 	}
 

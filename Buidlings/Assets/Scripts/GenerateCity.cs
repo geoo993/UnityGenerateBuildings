@@ -112,21 +112,24 @@ public class GenerateCity : MonoBehaviour {
 
 		for (int i = 0; i < areas.Count; i++) {
 
-			xSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.x;
-			zSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.z;
+			xSize = (int)areas [i].GetComponent<MeshRenderer> ().bounds.size.x;
+			zSize = (int)areas [i].GetComponent<MeshRenderer> ().bounds.size.z;
 
 			//print ("bounds: " + areas[i].GetComponent<MeshRenderer> ().bounds);
 			//print ("size:  " + areas[i].GetComponent<MeshRenderer> ().bounds.size);
 
-			float distanceToCenter = Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition);
+			float distanceToCenter = Vector3.Distance (new Vector3 (mapWidth / 2, 0, mapHeight / 2), areas [i].transform.localPosition);
+
+			float distanceToMapEdge = Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition);
+
 
 			//move from center
-			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
-			float zz = areas[i].transform.position.z - ((float)zSize/2.0f);
+			float xx = areas [i].transform.position.x - ((float)xSize / 2.0f);
+			float zz = areas [i].transform.position.z - ((float)zSize / 2.0f);
 
-			Vector3 pivotPoint = new Vector3 (xx,areas[i].transform.position.y, zz);
+			Vector3 pivotPoint = new Vector3 (xx, areas [i].transform.position.y, zz);
 		
-			roundTop = true;//(Random.Range (0, 2) == 0);
+			roundTop = (Random.Range (0, 2) == 0);
 			roundFront = (Random.Range (0, 2) == 0);
 			roundBack = (Random.Range (0, 2) == 0);
 			roundSides = (Random.Range (0, 2) == 0);
@@ -143,82 +146,83 @@ public class GenerateCity : MonoBehaviour {
 			print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
 			print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
 
+			if (distanceToCenter < 150.0f) {
 
+				int splitSize = 25;
 
-			int splitSize = 25;
+				if (xSize > splitSize || zSize > splitSize) {
 
-			if (xSize > splitSize || zSize > splitSize) {
+					print ("over than split size");
 
-				print ("over than split size");
+					int xCount = 1;
+					while (xSize / xCount > splitSize) {
 
-				int xCount = 1;
-				while (xSize / xCount > splitSize) {
-
-					//print ("x res search "+xSize/xCount);
-					xCount++;
-				}
-				float xOffset = xSize / xCount;
-				print ("x Offset: " + xOffset + "   x count: " + xCount);
-
-
-				int zCount = 1;
-				while (zSize / zCount > splitSize) {
-					//print (" z res search "+zSize/zCount);
-					zCount++;
-				}
-				float zOffset = zSize / zCount;
-
-				print ("z Offset: " + zOffset + "   z count: " + zCount);
-
-				List<Vector3> pointsInArea = new List<Vector3> ();
-				for (int s = 0; s < xCount; s++) {
-
-					float xP = pivotPoint.x + (s * xOffset);
-
-					for (int z = 0; z < zCount; z++) {
-
-						float zP = pivotPoint.z + (z * zOffset);
-
-						Vector3 finalP = new Vector3 (xP, pivotPoint.y, zP);
-						pointsInArea.Add(finalP);
+						//print ("x res search "+xSize/xCount);
+						xCount++;
 					}
+					float xOffset = xSize / xCount;
+					print ("x Offset: " + xOffset + "   x count: " + xCount);
 
-				}
-				//print ("all point: " + pointsInArea.Count);
 
-				xSize = (int)xOffset - 6;
-				zSize = (int)zOffset - 6;
+					int zCount = 1;
+					while (zSize / zCount > splitSize) {
+						//print (" z res search "+zSize/zCount);
+						zCount++;
+					}
+					float zOffset = zSize / zCount;
+
+					print ("z Offset: " + zOffset + "   z count: " + zCount);
+
+					List<Vector3> pointsInArea = new List<Vector3> ();
+					for (int s = 0; s < xCount; s++) {
+
+						float xP = pivotPoint.x + (s * xOffset);
+
+						for (int z = 0; z < zCount; z++) {
+
+							float zP = pivotPoint.z + (z * zOffset);
+
+							Vector3 finalP = new Vector3 (xP, pivotPoint.y, zP);
+							pointsInArea.Add (finalP);
+						}
+
+					}
+					//print ("all point: " + pointsInArea.Count);
+
+					xSize = (int)xOffset - 6;
+					zSize = (int)zOffset - 6;
 
 
 		
-				for (int o = 0; o < pointsInArea.Count ; o++) {
+					for (int o = 0; o < pointsInArea.Count; o++) {
 
-					ySize = Random.Range (40, 60) + ((int)distanceToCenter / 2);
-					print ("xSize:  "+xSize+"   ySize: " + ySize +"   zSize  "+zSize);
+						ySize = Random.Range (40, 60) + ((int)distanceToCenter / 2);
+						print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
-					Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 3);
-					getBuilding("building" + i,buildingPos1);
+						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 3);
+						getBuilding ("building" + i, buildingPos1);
+					}
+
+					print ("point in area: " + pointsInArea.Count);
+
+				} else {
+
+					int removeFromX = Random.Range (2, 5);
+					int removeFromZ = Random.Range (2, 5);
+					xSize -= removeFromX;
+					ySize = Random.Range (20, 40) + ((int)distanceToCenter / 2);
+					zSize -= removeFromZ;
+
+					print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
+
+					Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX / 2), this.transform.position.y, pivotPoint.z + (removeFromZ / 2));
+
+
+					getBuilding ("building" + i, buildingPos2);
 				}
 
-				print ("point in area: " + pointsInArea.Count);
 
-			} else {
-
-				int removeFromX = Random.Range(2,5);
-				int removeFromZ = Random.Range(2,5);
-				xSize -= removeFromX;
-				ySize = Random.Range (20, 40)+ ((int)distanceToCenter / 2);
-				zSize -= removeFromZ;
-
-				print ("xSize:  "+xSize+"   ySize: " + ySize+"   zSize  "+zSize);
-
-				Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX/2), this.transform.position.y, pivotPoint.z + (removeFromZ/2));
-
-
-				getBuilding("building" + i,buildingPos2);
 			}
-
-
 		}
 		yield return wait;
 
@@ -676,7 +680,7 @@ public class GenerateCity : MonoBehaviour {
 
 			vertices [topControlPointIndexes [y]] = new Vector3 (
 				vertices [topControlPointIndexes [y]].x,
-				vertices [topControlPointIndexes [y]].y + +tRandOffset,
+				vertices [topControlPointIndexes [y]].y +tRandOffset,
 				vertices [topControlPointIndexes [y]].z);
 
 		}
