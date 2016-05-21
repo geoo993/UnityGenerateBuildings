@@ -9,16 +9,14 @@ using System.Collections.Generic;
 public class BuildingAndTexture : MonoBehaviour {
 
 
-	public GameObject sphere;
+	public GameObject sphere = null;
 	private List <GameObject> newSpheres = new List<GameObject>();
 	private List <GameObject> floorCheck = new List<GameObject>();
 
 
 	bool pickTexture = false;
 
-	private int xlength = 0;
-	private int ylength = 0;
-	private int zlength = 0;
+	private int xlength, ylength, zlength, row = 0;
 
 	private int xSize = 12;
 	private int ySize = 40;
@@ -29,19 +27,18 @@ public class BuildingAndTexture : MonoBehaviour {
 	private bool roundFront = false;
 	private bool roundBack = false;
 	private bool roundSides = false;
-	private bool roof = false;
 
 
 	private int offset = 0;
 	private int midY = 0;
 
 	private Vector3 topPoint = new Vector3 ();
-	private List<int[]> controlPoints = new List<int[]>();
+	private List<int[]> rows = new List<int[]>();
 	private List<int> listOfVerticesIndexes = new List<int>();
 	private List <Vector3> verticesCopy = new List<Vector3> ();
 
 
-	private List<int> pivotControlPoint= new List<int>();
+	private List<int> allControlPoint= new List<int>();
 	private List<int> topControlPointIndexes = new List<int>();
 	private List<int> frontControlPointIndexes = new List<int>();
 	private List<int> backControlPointIndexes = new List<int>();
@@ -66,8 +63,6 @@ public class BuildingAndTexture : MonoBehaviour {
 	private int[] triangles; 
 	//private List<int> triangles = new List<int>();
 
-	List<int> mee = new List<int> ();
-
 
 	private static int
 	SetQuad (int[] triangles, int i, int v00, int v10, int v01, int v11) {
@@ -84,9 +79,6 @@ public class BuildingAndTexture : MonoBehaviour {
 		return i + 6;
 	}
 
-
-	public enum PositioningPrefs { front, back, top, allSides };
-	public PositioningPrefs verticesPrefs = PositioningPrefs.allSides;
 
 	private GameObject plane;
 
@@ -107,6 +99,8 @@ public class BuildingAndTexture : MonoBehaviour {
 		float xx = plane.transform.position.x - ((float)xSize/2.0f);
 		float zz = plane.transform.position.z - ((float)zSize/2.0f);
 		Vector3 pivotCenter = new Vector3 (xx,plane.transform.position.y, zz);
+
+	
 		GameObject center = (GameObject)Instantiate (sphere, pivotCenter, Quaternion.identity);
 		center.GetComponent<MeshRenderer> ().material.color = Color.blue;
 		floorCheck.Add (center);
@@ -153,9 +147,9 @@ public class BuildingAndTexture : MonoBehaviour {
 					float zP = center.transform.position.z + (z * zOffset);
 					//float zP = center.transform.position.z + zOffset + (z * zOffset);
 
-					Vector3 zp = new Vector3 (xP, center.transform.position.y, zP);
+					Vector3 xz = new Vector3 (xP, center.transform.position.y, zP);
 
-					GameObject a = (GameObject)Instantiate (sphere, zp, Quaternion.identity);
+					GameObject a = (GameObject)Instantiate (sphere, xz, Quaternion.identity);
 					floorCheck.Add (a);
 				}
 
@@ -164,23 +158,17 @@ public class BuildingAndTexture : MonoBehaviour {
 
 
 			xSize = (int)xOffset - 6;
-			//		xSize = Random.Range (2, 20);
-
 			ySize = Random.Range (20, 60);
-
 			zSize = (int)zOffset - 6;
-			//		zSize = Random.Range (4, 20);
 
 
 			print ("bounds: " + plane.GetComponent<MeshRenderer> ().bounds);
 			print ("size:  " + plane.GetComponent<MeshRenderer> ().bounds.size);
 
-
-			roundTop = (Random.Range (0, 2) == 0);
+			roundTop = true;//(Random.Range (0, 2) == 0);
 			roundFront = (Random.Range (0, 2) == 0);
 			roundBack = (Random.Range (0, 2) == 0);
 			roundSides = (Random.Range (0, 2) == 0);
-			roof = (Random.Range (0, 2) == 0);
 
 
 			int i = 0;
@@ -214,6 +202,9 @@ public class BuildingAndTexture : MonoBehaviour {
 	}
 	private void CreateControllPointsIndexes ()
 	{
+		//get all rows
+		row = (xSize + zSize) * 2;
+
 		xlength = xSize + 1;
 		ylength = ySize + 1;
 		zlength = zSize + 1;
@@ -237,11 +228,30 @@ public class BuildingAndTexture : MonoBehaviour {
 					//print(innerArray[y]);
 
 				}
-				controlPoints.Insert(x, innerArray.ToArray());
+				rows.Insert(x, innerArray.ToArray());
 			}
+		}
+		//print ("rows points:  " + rows.Count);
+	}
+
+	void createSpheresInvertices(){
+
+		for (int v = 0; v < vertices.Count; v++) {
+			createSphere (vertices [v] + this.transform.localPosition, newSpheres);
 
 		}
 
+		//backControlPointIndexes//frontControlPointIndexes
+		for (int x = 0; x < row  ; x++) {
+			newSpheres [rows [x] [4]].GetComponent<MeshRenderer> ().material.color = Color.green;
+			//print("v: "+x+"   "+rows [x][0]);
+
+//			for (int z = 0; z < rows [x].Length; z++) 
+//			{
+//				newSpheres [rows [x] [z]].GetComponent<MeshRenderer> ().material.color = Color.green;
+//
+//			}
+		}
 	}
 
 	private void CreateMesh()
@@ -279,7 +289,7 @@ public class BuildingAndTexture : MonoBehaviour {
 		//normals = new Vector3[verticesLength];
 		//uv = new Vector2[verticesLength];
 
-		print ("vertices Length: "+verticesLength);
+		//print ("vertices Length: "+verticesLength);
 
 		int v = 0;
 		// sides
@@ -319,7 +329,6 @@ public class BuildingAndTexture : MonoBehaviour {
 	private void SetVertex (int i, int x, int y, int z) {
 		
 		Vector3 vect = new Vector3 (x, y, z);
-		//vertices[i] = new Vector3(x, y, z);
 		Vector3 inner = vect;
 
 			
@@ -492,7 +501,7 @@ public class BuildingAndTexture : MonoBehaviour {
 		//boxCollider = gameObject.AddComponent<BoxCollider>();
 		//boxCollider.size = new Vector3(xSize, ySize, zSize);
 		//boxCollider.center = new Vector3 ((float)xSize/2, (float)ySize/2, (float)zSize/2);
-
+		Destroy(meshCollider);
 		meshCollider = gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
 		meshCollider.sharedMesh = mesh; // Give it your mesh here.
 
@@ -514,9 +523,7 @@ public class BuildingAndTexture : MonoBehaviour {
 				topControlPointIndexes.Add (i);
 
 			}
-
 		}
-
 		//Debug.Log ("vertices length: "+vertices.Length +"   list of indexes length: "+ listOfVerticesIndexes.Count+"  vertex points copied: "+verticesCopy.Count);
 
 
@@ -543,11 +550,10 @@ public class BuildingAndTexture : MonoBehaviour {
 			//print (listOfIndexes.ToArray());
 			for (int a = 0; a < offset + 1; a++) {
 
-				if (  listOfVerticesIndexes[s].Equals(controlPoints [a] [midY])   ) {
+				if (  listOfVerticesIndexes[s].Equals(rows [a] [midY])   ) {
 
 					//createSphere (verticesCopy [listOfVerticesIndexes [s]], newSpheres);
-
-					pivotControlPoint.Add (pivot);
+					allControlPoint.Add (pivot);
 					//print (listOfIndexes[s]+"   "+newSpheres.Count);
 					pivot++;
 				} 
@@ -561,15 +567,17 @@ public class BuildingAndTexture : MonoBehaviour {
 		//createSphere (topPoint, newSpheres);
 
 
-
 		////front
-		for (int f = 0; f < xlength; f++) {
+		int front = xlength  ;
+		for (int f = 0; f < front; f++) {
 
 			frontControlPointIndexes.Add (f);
 		}
 
 		////back
-		for (int b = xSize + zSize; b < pivotControlPoint.Count - (zSize - 1); b++) {
+		int backFrom = xSize + zSize;
+		int backTo = allControlPoint.Count - (zSize - 1);//row - zSize + 1; 
+		for (int b = backFrom; b < backTo; b++) {
 
 			backControlPointIndexes.Add (b);
 		}
@@ -582,7 +590,7 @@ public class BuildingAndTexture : MonoBehaviour {
 		}
 
 		//second side
-		for (int ss = (xlength * 2) + (zSize - 1); ss < pivotControlPoint.Count; ss++) {
+		for (int ss = (xlength * 2) + (zSize - 1); ss < allControlPoint.Count; ss++) {
 
 			sidesControlPointIndexes.Add (ss);
 		}
@@ -590,13 +598,9 @@ public class BuildingAndTexture : MonoBehaviour {
 
 
 	}
-	private void changeColor(GameObject ob, Color col){
 
-		ob.GetComponent<MeshRenderer> ().material.color = col;
-	}
 	private void RandomOutlinesGeneration()
 	{
-
 
 		//print (xSize + "   " + zSize + "   " + pivotControlPoint.Count);
 
@@ -620,18 +624,18 @@ public class BuildingAndTexture : MonoBehaviour {
 		int fToLoop = Mathf.Clamp (Random.Range (fFromLoop, frontControlPointIndexes.Count - 1), 0, frontControlPointIndexes.Count - 1);
 		float fRandOffset = Random.Range (-4, 4);
 
-		print ("front from: " + fFromLoop + "   front too: " + fToLoop + "   all front:" + frontControlPointIndexes.Count);
+		//print ("front from: " + fFromLoop + "   front too: " + fToLoop + "   all front:" + frontControlPointIndexes.Count);
 
 		if (fToLoop > fFromLoop + 1) {
 			
 			for (int i = fFromLoop; i < fToLoop; i++) {
 
-				for (int z = 0; z < controlPoints [frontControlPointIndexes [i]].Length; z++) {
+				for (int z = 0; z < rows [frontControlPointIndexes [i]].Length; z++) {
 
-					vertices [controlPoints [frontControlPointIndexes [i]] [z]] = new Vector3 (
-					vertices [controlPoints [frontControlPointIndexes [i]] [z]].x,
-					vertices [controlPoints [frontControlPointIndexes [i]] [z]].y,
-					vertices [controlPoints [frontControlPointIndexes [i]] [z]].z + fRandOffset);
+					vertices [rows [frontControlPointIndexes [i]] [z]] = new Vector3 (
+						vertices [rows [frontControlPointIndexes [i]] [z]].x,
+						vertices [rows [frontControlPointIndexes [i]] [z]].y,
+						vertices [rows [frontControlPointIndexes [i]] [z]].z + fRandOffset);
 				}
 
 //				newSpheres [frontControlPointIndexes [i]].transform.localPosition = new Vector3 (
@@ -650,17 +654,17 @@ public class BuildingAndTexture : MonoBehaviour {
 		int bTo = Mathf.Clamp (Random.Range (bFrom, backControlPointIndexes.Count - 1), 0, backControlPointIndexes.Count - 1);
 		float bRandOffset = Random.Range (-4, 4);
 
-		print ("back from: " + bFrom + "   back too: " + bTo + "   all backs:" + backControlPointIndexes.Count);
+		//print ("back from: " + bFrom + "   back too: " + bTo + "   all backs:" + backControlPointIndexes.Count);
 
 		if (bTo > bFrom + 1) {
 			for (int i = bFrom; i < bTo; i++) {
 
-				for (int z = 0; z < controlPoints [backControlPointIndexes [i]].Length; z++) {
+				for (int z = 0; z < rows [backControlPointIndexes [i]].Length; z++) {
 
-					vertices [controlPoints [backControlPointIndexes [i]] [z]] = new Vector3 (
-					vertices [controlPoints [backControlPointIndexes [i]] [z]].x,
-					vertices [controlPoints [backControlPointIndexes [i]] [z]].y,
-					vertices [controlPoints [backControlPointIndexes [i]] [z]].z + fRandOffset);
+					vertices [rows [backControlPointIndexes [i]] [z]] = new Vector3 (
+						vertices [rows [backControlPointIndexes [i]] [z]].x,
+						vertices [rows [backControlPointIndexes [i]] [z]].y,
+						vertices [rows [backControlPointIndexes [i]] [z]].z + fRandOffset);
 				}
 
 //				newSpheres [backControlPointIndexes [i]].transform.localPosition = new Vector3 (
@@ -708,62 +712,44 @@ public class BuildingAndTexture : MonoBehaviour {
 
 				//if (sType != 2 || sType == 2 && i != (sidesControlPointIndexes.Count / 2) && i != ((sidesControlPointIndexes.Count / 2) - 1)) {
 
-				for (int z = 0; z < controlPoints [sidesControlPointIndexes [i]].Length; z++) {
+				for (int z = 0; z < rows [sidesControlPointIndexes [i]].Length; z++) {
 
-					vertices [controlPoints [sidesControlPointIndexes [i]] [z]] = new Vector3 (
-					vertices [controlPoints [sidesControlPointIndexes [i]] [z]].x + sRandOffset,
-					vertices [controlPoints [sidesControlPointIndexes [i]] [z]].y,
-					vertices [controlPoints [sidesControlPointIndexes [i]] [z]].z);
+					vertices [rows [sidesControlPointIndexes [i]] [z]] = new Vector3 (
+						vertices [rows [sidesControlPointIndexes [i]] [z]].x + sRandOffset,
+						vertices [rows [sidesControlPointIndexes [i]] [z]].y,
+						vertices [rows [sidesControlPointIndexes [i]] [z]].z);
 				}
 
-//				newSpheres [sidesControlPointIndexes [i]].transform.localPosition = new Vector3 (
-//					newSpheres [sidesControlPointIndexes [i]].transform.localPosition.x + sRandOffset,
-//					newSpheres [sidesControlPointIndexes [i]].transform.localPosition.y,
-//					newSpheres [sidesControlPointIndexes [i]].transform.localPosition.z);
-//				
-//				changeColor (newSpheres [sidesControlPointIndexes [i]], Color.white);
 			}
 		}else{
 			
 			for (int a = sFrom; a < sTo; a++) {
 
-				for (int z = 0; z < controlPoints [sidesControlPointIndexes [a]].Length; z++) {
+				for (int z = 0; z < rows [sidesControlPointIndexes [a]].Length; z++) {
 
-					vertices [controlPoints [sidesControlPointIndexes [a]] [z]] = new Vector3 (
-						vertices [controlPoints [sidesControlPointIndexes [a]] [z]].x + sRandOffset,
-						vertices [controlPoints [sidesControlPointIndexes [a]] [z]].y,
-						vertices [controlPoints [sidesControlPointIndexes [a]] [z]].z);
+					vertices [rows [sidesControlPointIndexes [a]] [z]] = new Vector3 (
+						vertices [rows [sidesControlPointIndexes [a]] [z]].x + sRandOffset,
+						vertices [rows [sidesControlPointIndexes [a]] [z]].y,
+						vertices [rows [sidesControlPointIndexes [a]] [z]].z);
 				}
-
-//				newSpheres [sidesControlPointIndexes [a]].transform.localPosition = new Vector3 (
-//					newSpheres [sidesControlPointIndexes [a]].transform.localPosition.x + sRandOffset,
-//					newSpheres [sidesControlPointIndexes [a]].transform.localPosition.y,
-//					newSpheres [sidesControlPointIndexes [a]].transform.localPosition.z);
-				//print (sidesControlPointIndexes[a]);
 			}
 			for (int aa = sFrom2; aa < sTo2; aa++) {
 
-				for (int z = 0; z < controlPoints [sidesControlPointIndexes [aa]].Length; z++) {
+				for (int z = 0; z < rows [sidesControlPointIndexes [aa]].Length; z++) {
 
-					vertices [controlPoints [sidesControlPointIndexes [aa]] [z]] = new Vector3 (
-						vertices [controlPoints [sidesControlPointIndexes [aa]] [z]].x - sRandOffset,
-						vertices [controlPoints [sidesControlPointIndexes [aa]] [z]].y,
-						vertices [controlPoints [sidesControlPointIndexes [aa]] [z]].z);
+					vertices [rows [sidesControlPointIndexes [aa]] [z]] = new Vector3 (
+						vertices [rows [sidesControlPointIndexes [aa]] [z]].x - sRandOffset,
+						vertices [rows [sidesControlPointIndexes [aa]] [z]].y,
+						vertices [rows [sidesControlPointIndexes [aa]] [z]].z);
 				}
 
-//				newSpheres [sidesControlPointIndexes [aa]].transform.localPosition = new Vector3 (
-//					newSpheres [sidesControlPointIndexes [aa]].transform.localPosition.x - sRandOffset,
-//					newSpheres [sidesControlPointIndexes [aa]].transform.localPosition.y,
-//					newSpheres [sidesControlPointIndexes [aa]].transform.localPosition.z);
-				
-				//print (sidesControlPointIndexes[aa]);
 			}
 		}
 
 
 		////top calcutations
 		int topPivotIndex = newSpheres.Count - 1;
-		float tRandOffset = Random.Range (-4, 4);
+		float tRandOffset = Random.Range (-4, 2);
 
 		for (int y = 0; y < topControlPointIndexes.Count; y++) {
 
@@ -773,14 +759,6 @@ public class BuildingAndTexture : MonoBehaviour {
 				vertices [topControlPointIndexes [y]].z);
 		
 		}
-
-//		newSpheres [ topPivotIndex].transform.localPosition = new Vector3 (
-//			newSpheres [topPivotIndex].transform.localPosition.x,
-//			newSpheres [topPivotIndex].transform.localPosition.y + tRandOffset,
-//			newSpheres [topPivotIndex].transform.localPosition.z);
-//
-//		changeColor (newSpheres [topPivotIndex], Color.cyan);
-
 
 		print (" top offset:  " + tRandOffset);
 
@@ -845,7 +823,7 @@ public class BuildingAndTexture : MonoBehaviour {
 		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 		meshRenderer.material = material;
 
-		plane.GetComponent<MeshRenderer> ().material = material;
+		//plane.GetComponent<MeshRenderer> ().material = material;
 		//meshRenderer.material = null;
 
 
@@ -854,7 +832,13 @@ public class BuildingAndTexture : MonoBehaviour {
 
 	private void UpdateVerticesAndPositions() {
 
-//
+
+		for (int v = 0; v < vertices.Count ; v++) {
+			vertices [v] = newSpheres [v].transform.localPosition; 
+
+		}
+
+
 //		switch (verticesPrefs) {
 //
 //		case PositioningPrefs.allSides:
@@ -871,19 +855,6 @@ public class BuildingAndTexture : MonoBehaviour {
 //			}
 //
 //
-//			for (int y = 0; y < topControlPointIndexes.Count; y++) {
-//
-//				if (roof){
-//					// do pointy top
-//					vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
-//				} else{
-//					//do normal top
-//					vertices [topControlPointIndexes[y]] = new Vector3(
-//						vertices [topControlPointIndexes[y]].x,
-//						newSpheres [newSpheres.Count-1].transform.localPosition.y,
-//						vertices [topControlPointIndexes[y]].z);
-//				}
-//			}
 //
 //			break;
 //		case PositioningPrefs.front: 
@@ -937,17 +908,6 @@ public class BuildingAndTexture : MonoBehaviour {
 //
 //		}
 
-//		for (int i = 0; i < newSpheres.Count-1; i++) 
-//		{
-//			//clamp y on side spheres
-//			newSpheres [i].transform.localPosition = new Vector3 (
-//				newSpheres [i].transform.localPosition.x,
-//				Mathf.Clamp (newSpheres [i].transform.localPosition.y, midY, midY),
-//				newSpheres [i].transform.localPosition.z);
-//		
-//		}
-//
-//
 
 
 	}
@@ -977,33 +937,8 @@ public class BuildingAndTexture : MonoBehaviour {
 //		print("normals: "+normals.Length);
 //		print("uv: "+uv.Length);
 
-		//int i, int v00, int v10, int v01, int v11
 
-//		for (int i = 0; i < 100; i++) {
-//
-//			var ip = (i + 1)%radialSegments;
-//			var jp = (j + 1)%tubularSegments;
-//
-//			var a = grid[i][j];
-//			var b = grid[ip][j];
-//			var c = grid[ip][jp];
-//			var d = grid[i][jp];
-//
-//			triangles.Add(a);
-//			triangles.Add(b);
-//			triangles.Add(d);
-//
-//			triangles.Add(b);
-//			triangles.Add(c);
-//			triangles.Add(d);
-//
-//
-//			mee[i] = 1;
-////			mee[i + 1] = mee[i + 4] = 2;
-////			mee[i + 2] = mee[i + 3] = 3;
-////			mee[i + 5] = 4;
-//		}
-		print (mee);
+		//createSpheresInvertices ();
 
 
 
@@ -1011,12 +946,17 @@ public class BuildingAndTexture : MonoBehaviour {
 
 	void Update()
 	{
-		
-
-		if (Input.GetKeyDown ("space")) {
-			//RandomBuildingProperties ();
+//		UpdateVerticesAndPositions ();
+//		CreateMesh ();
+//		CreateTriangles();
+//		AddPropertiesToMesh ();
+//
+//
+		if (Input.GetKeyDown ("space")) 
+		{
 			removeAll ();
 			addAgain ();
+
 		}
 
 
@@ -1028,10 +968,10 @@ public class BuildingAndTexture : MonoBehaviour {
 		meshFilter.sharedMesh = null;
 		meshCollider.sharedMesh = null;
 		mesh.Clear();
-		vertices = null;
+		vertices.Clear (); 
 		triangles = null; 
-		normals = null;
-		uv = null;
+		normals.Clear ();
+		uv.Clear ();
 
 
 		foreach (GameObject spheres in newSpheres) {
@@ -1045,11 +985,11 @@ public class BuildingAndTexture : MonoBehaviour {
 		}
 		floorCheck.Clear ();
 
-		controlPoints.Clear();
+		rows.Clear();
 		listOfVerticesIndexes.Clear();
 		verticesCopy.Clear();
 
-		pivotControlPoint.Clear();
+		allControlPoint.Clear();
 		topControlPointIndexes.Clear (); 
 		frontControlPointIndexes.Clear();
 		backControlPointIndexes.Clear (); 

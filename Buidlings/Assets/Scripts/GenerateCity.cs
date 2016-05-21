@@ -6,6 +6,15 @@ using System.Collections.Generic;
 
 public class GenerateCity : MonoBehaviour {
 
+	public Camera mainCamera;
+	private Ray ray;
+	private RaycastHit hit;
+	private GameObject hitObject = null;
+
+	private float buildLimit = 200.0f;
+	private float stretcher = 5f;
+
+	public GameObject sphere = null;
 	[Range(10,40)] public int minSize = 10;
 	[Range(100,1000)] public int mapWidth = 200;
 	[Range(100,1000)] public int mapHeight = 200;
@@ -47,8 +56,36 @@ public class GenerateCity : MonoBehaviour {
 
 	private void Awake () {
 
-		this.transform.name = "city";
+		this.transform.name = "inverted city";
 		StartCoroutine(GenerateCityBuildings ());
+
+	}
+
+	void Update()
+	{
+		if (Input.GetMouseButtonDown (0)) {
+
+			ray = mainCamera.ScreenPointToRay (Input.mousePosition);
+
+			if (Physics.Raycast (ray, out hit)) {
+
+				for (int i = 0; i < areas.Count; i++) {
+
+					if (hit.collider.gameObject == areas [i]) {
+						hitObject = hit.collider.gameObject;
+
+						//Debug.Log (areas.IndexOf(hit.collider.gameObject));
+						hitObject.GetComponent<Renderer> ().material.color = new Color (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
+
+						//Debug.Log (hitObject.transform.localScale);
+						Debug.Log("Dist: "+Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition));
+
+					}
+				}
+
+
+			}
+		}
 
 	}
 
@@ -65,6 +102,10 @@ public class GenerateCity : MonoBehaviour {
 
 		addMapEdges ();
 
+
+		for (int e = 0; e < mapEdgePoints.Count; e++) {
+			createSphere (mapEdgePoints [e]);
+		}
 
 		for (int i = 0; i < areas.Count; i++) {
 
@@ -112,43 +153,43 @@ public class GenerateCity : MonoBehaviour {
 
 		for (int i = 0; i < areas.Count; i++) {
 
-			xSize = (int)areas [i].GetComponent<MeshRenderer> ().bounds.size.x;
-			zSize = (int)areas [i].GetComponent<MeshRenderer> ().bounds.size.z;
+			xSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.x;
+			zSize = (int)areas[i].GetComponent<MeshRenderer> ().bounds.size.z;
 
 			//print ("bounds: " + areas[i].GetComponent<MeshRenderer> ().bounds);
 			//print ("size:  " + areas[i].GetComponent<MeshRenderer> ().bounds.size);
 
-			float distanceToCenter = Vector3.Distance (new Vector3 (mapWidth / 2, 0, mapHeight / 2), areas [i].transform.localPosition);
+			float distanceToCenter = Vector3.Distance (new Vector3(mapWidth/2, 0, mapHeight/2), areas [i].transform.localPosition);
 
 			float distanceToMapEdge = Vector3.Distance (GetClosestEdge (areas [i].transform.localPosition, mapEdgePoints), areas [i].transform.localPosition);
 
-
 			//move from center
-			float xx = areas [i].transform.position.x - ((float)xSize / 2.0f);
-			float zz = areas [i].transform.position.z - ((float)zSize / 2.0f);
+			float xx = areas[i].transform.position.x - ((float)xSize/2.0f);
+			float zz = areas[i].transform.position.z - ((float)zSize/2.0f);
 
-			Vector3 pivotPoint = new Vector3 (xx, areas [i].transform.position.y, zz);
-		
+			Vector3 pivotPoint = new Vector3 (xx,areas[i].transform.position.y, zz);
+
+
 			roundTop = (Random.Range (0, 2) == 0);
 			roundFront = (Random.Range (0, 2) == 0);
 			roundBack = (Random.Range (0, 2) == 0);
 			roundSides = (Random.Range (0, 2) == 0);
 
-			int c = 0;
+			int maxRounder = 0;
 			for (int r = 0; r < 20; r++) {
 			
-				if (c < xSize && c < zSize && c < 5) {
-					c++;
+				if (maxRounder < xSize && maxRounder < zSize && maxRounder < 5) {
+					maxRounder++;
 				}
 			}
-			roundness = Random.Range (0, c);
+			roundness = Random.Range (0, maxRounder);
 
 			print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
 			print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
 
-			if (distanceToCenter < 150.0f) {
+			if (distanceToCenter < buildLimit) {
 
-				int splitSize = 25;
+				int splitSize = (int)buildLimit / 8;
 
 				if (xSize > splitSize || zSize > splitSize) {
 
@@ -189,54 +230,63 @@ public class GenerateCity : MonoBehaviour {
 					}
 					//print ("all point: " + pointsInArea.Count);
 
-					xSize = (int)xOffset - 6;
-					zSize = (int)zOffset - 6;
+					xSize = (int)xOffset - (int)stretcher;
+					zSize = (int)zOffset - (int)stretcher;
 
 
-		
 					for (int o = 0; o < pointsInArea.Count; o++) {
 
-						ySize = Random.Range (40, 60) + ((int)distanceToCenter / 2);
+						ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); //(int)distanceToCenter;
 						print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
-						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + 3, transform.localPosition.y, pointsInArea [o].z + 3);
+						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + (stretcher / 2), transform.localPosition.y, pointsInArea [o].z + (stretcher / 2));
 						getBuilding ("building" + i, buildingPos1);
 					}
 
 					print ("point in area: " + pointsInArea.Count);
 
 				} else {
-
-					int removeFromX = Random.Range (2, 5);
-					int removeFromZ = Random.Range (2, 5);
-					xSize -= removeFromX;
-					ySize = Random.Range (20, 40) + ((int)distanceToCenter / 2);
-					zSize -= removeFromZ;
+					
+					xSize -= (int)stretcher;
+					ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); // (int)distanceToCenter;
+					zSize -= (int)stretcher;
 
 					print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
-					Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (removeFromX / 2), this.transform.position.y, pivotPoint.z + (removeFromZ / 2));
+					Vector3 buildingPos2 = new Vector3 (pivotPoint.x + (stretcher / 2), this.transform.position.y, pivotPoint.z + (stretcher / 3));
 
 
 					getBuilding ("building" + i, buildingPos2);
 				}
 
-
 			}
+			//yield return wait;
 		}
 		yield return wait;
 
-		for (int i = 0; i < areas.Count; i++) {
-			areas [i].GetComponent<MeshRenderer> ().material.color = Color.black;
-		}
+//		for (int i = 0; i < areas.Count; i++) {
+//			areas [i].GetComponent<MeshRenderer> ().material.color = Color.black;
+//		}
+
 
 	}
+
+	private GameObject createSphere(Vector3 pos ){
+
+		GameObject a = (GameObject) Instantiate(sphere, pos, Quaternion.identity);
+		a.transform.localScale = new Vector3 (4f, 4f, 4f);
+		a.GetComponent<Renderer> ().material.color = Color.red;
+		a.transform.parent = this.transform;
+
+		return a;
+	}
+
 	private void getBuilding(string name, Vector3 position){
 
 		GameObject building = CreateBuilding (position) as GameObject;
 		building.transform.parent = this.transform;
 		building.name = name;
-		
+		building.transform.localScale = new Vector3 (Random.Range (0.5f, 0.8f), 1f, Random.Range (0.5f, 0.8f));
 	}
 
 
@@ -454,7 +504,6 @@ public class GenerateCity : MonoBehaviour {
 		MeshRenderer meshR = build.AddComponent<MeshRenderer> ();
 
 		CreateColorAndtexture (meshR);
-		//build.AddComponent<TextureGenerator> ();
 
 		build.transform.position = position;
 
@@ -554,12 +603,12 @@ public class GenerateCity : MonoBehaviour {
 
 	private void RandomOutlinesGeneration()
 	{
-		float range = 3.5f;
+		
 
 		////front calcutations
 		int fFromLoop = Random.Range (0, frontControlPointIndexes.Count - 1);
 		int fToLoop = Mathf.Clamp (Random.Range (fFromLoop, frontControlPointIndexes.Count - 1), 0, frontControlPointIndexes.Count - 1);
-		float fRandOffset = Random.Range (-range, range);
+		float fRandOffset = Random.Range (-stretcher, stretcher);
 
 		//print ("front from: " + fFromLoop + "   front too: " + fToLoop + "   all front:" + frontControlPointIndexes.Count);
 
@@ -582,7 +631,7 @@ public class GenerateCity : MonoBehaviour {
 		////back calcutations
 		int bFrom = Random.Range (0, backControlPointIndexes.Count - 1);
 		int bTo = Mathf.Clamp (Random.Range (bFrom, backControlPointIndexes.Count - 1), 0, backControlPointIndexes.Count - 1);
-		float bRandOffset = Random.Range (-range, range);
+		float bRandOffset = Random.Range (-stretcher, stretcher);
 
 		//print ("back from: " + bFrom + "   back too: " + bTo + "   all backs:" + backControlPointIndexes.Count);
 
@@ -607,7 +656,7 @@ public class GenerateCity : MonoBehaviour {
 		int sTo = 0;
 		int sFrom2 = 0;
 		int sTo2 = 0;
-		float sRandOffset = Random.Range (-range, range);
+		float sRandOffset = Random.Range (-stretcher, stretcher);
 
 		switch (sType) {
 
@@ -674,18 +723,17 @@ public class GenerateCity : MonoBehaviour {
 
 
 		////top calcutations
-		float tRandOffset = Random.Range (-range, range);
+		float tRandOffset = Random.Range (-stretcher, stretcher/2);
 
 		for (int y = 0; y < topControlPointIndexes.Count; y++) {
 
 			vertices [topControlPointIndexes [y]] = new Vector3 (
 				vertices [topControlPointIndexes [y]].x,
-				vertices [topControlPointIndexes [y]].y +tRandOffset,
+				vertices [topControlPointIndexes [y]].y + tRandOffset,
 				vertices [topControlPointIndexes [y]].z);
 
 		}
 
-		//print (" top offset:  " + tRandOffset);
 
 	}
 
@@ -897,13 +945,17 @@ public class GenerateCity : MonoBehaviour {
 	}
 
 
+	public Texture[] texturesType1 = new Texture[]{};
+	public Texture[] texturesType2 = new Texture[]{};
+	private bool textureType = false;
+
 	private void CreateColorAndtexture(MeshRenderer mR) {
 
 
 		Material material = new Material (Shader.Find (".ShaderExample/TextureSplatting"));
 		//Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
 		//Material material = new Material (Shader.Find ("Standard"));
-		//material.color = Color.Lerp(Color.white, new Color((48.0f/255.0f),(48.0f/255.0f),(80.0f/255.0f)), Random.Range(0.0f, 1.0f));
+		material.color = Color.Lerp(Color.white, new Color((48.0f/255.0f),(48.0f/255.0f),(80.0f/255.0f)), Random.Range(0.0f, 1.0f));
 
 
 		Texture[] smallStripes = new Texture[] {
@@ -941,16 +993,32 @@ public class GenerateCity : MonoBehaviour {
 		Texture inverted = bigStripesInverted [pickbigStripesInverted] as Texture;
 
 
-		material.SetTexture ("_MainTex", small);
-		material.SetTextureScale ("_MainTex", new Vector2(2,Random.Range(2.0f,4.0f))); 
+		material.SetTexture ("_Texture1", small);
+		material.SetTextureScale ("_Texture1", new Vector2(1,1));
 
-		material.SetFloat ("_White", Random.Range(0.0f , 1.0f));
-		material.SetFloat ("_Transition1", Random.Range (0.25f, 1.0f));
-
-		material.SetTexture ("_Texture1", inverted);
 		material.SetTexture ("_Texture2", big);
+		material.SetTextureScale ("_Texture2", new Vector2(1,1));
 
 		mR.material = material;
+
+
+
+//		Material m = new Material(Shader.Find("Self-Illumin/Diffuse"));
+//
+//		textureType = (Random.Range (0, 2) == 0);
+//
+//
+//		if (textureType) {
+//			m.SetTexture("_MainTex", texturesType1[Random.Range(0,texturesType1.Length)]);
+//			m.SetTextureScale ("_MainTex", new Vector2 (8, 8));
+//			m.SetColor ("_Color", new Color (0.5f, 0.5f, 0.5f));
+//		} else {
+//			m.SetTexture("_MainTex", texturesType2[Random.Range(0,texturesType2.Length)]);
+//			m.SetTextureScale ("_MainTex", new Vector2 (16, 16));
+//		}
+//
+//		mR.material = m;
+
 
 	}
 
