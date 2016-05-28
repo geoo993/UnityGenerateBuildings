@@ -1,4 +1,4 @@
-﻿Shader ".ShaderExample/Textured With Detail"
+﻿Shader ".ShaderExample/TexturedWithDetail"
 {
 
 	Properties {

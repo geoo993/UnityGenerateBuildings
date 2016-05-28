@@ -11,21 +11,27 @@ public class GenerateCity : MonoBehaviour {
 	private RaycastHit hit;
 	private GameObject hitObject = null;
 
-	private float buildLimit = 200.0f;
 	private float stretcher = 5f;
 
 	public GameObject sphere = null;
-	[Range(10,40)] public int minSize = 10;
+	[Range(10,50)] public int minSize = 10;
 	[Range(100,1000)] public int mapWidth = 200;
 	[Range(100,1000)] public int mapHeight = 200;
+
+	[Range(1,20)] public int buildingsFrequency = 10;
+	[Range(200f,600f)] public float buildingsLimit = 600.0f;
+
+	[Range(0, 50)] public int buildingsMinHeight = 10;
+	[Range(10, 100)] public int buildingsMaxHeight = 60;
 
 	private List<GameObject> areas = new List<GameObject>();
 	private List<GameObject> areasIndexDelete = new List<GameObject>();
 	private List<Vector3> edgePoints = new List<Vector3>();
 	private List<Vector3> mapEdgePoints = new List<Vector3>();
 
-	private int xSize, ySize, zSize, roundness, gameObjectCount ;
-	private bool roundTop,  roundFront, roundBack, roundSides = false;
+	private int xSize, ySize, zSize, gameObjectCount ;
+	public int roundness = 4;
+	public bool roundTop,  roundFront, roundBack, roundSides = false;
 	private List <Vector3> verticesCopy = new List<Vector3> ();
 
 	private List<int[]> controlPoints = new List<int[]>();
@@ -56,7 +62,7 @@ public class GenerateCity : MonoBehaviour {
 
 	private void Awake () {
 
-		this.transform.name = "inverted city";
+		this.transform.name = "city";
 		StartCoroutine(GenerateCityBuildings ());
 
 	}
@@ -170,10 +176,10 @@ public class GenerateCity : MonoBehaviour {
 			Vector3 pivotPoint = new Vector3 (xx,areas[i].transform.position.y, zz);
 
 
-			roundTop = (Random.Range (0, 2) == 0);
-			roundFront = (Random.Range (0, 2) == 0);
-			roundBack = (Random.Range (0, 2) == 0);
-			roundSides = (Random.Range (0, 2) == 0);
+//			roundTop = (Random.Range (0, 2) == 0);
+//			roundFront = (Random.Range (0, 2) == 0);
+//			roundBack = (Random.Range (0, 2) == 0);
+//			roundSides = (Random.Range (0, 2) == 0);
 
 			int maxRounder = 0;
 			for (int r = 0; r < 20; r++) {
@@ -182,14 +188,14 @@ public class GenerateCity : MonoBehaviour {
 					maxRounder++;
 				}
 			}
-			roundness = Random.Range (0, maxRounder);
+			//roundness = Random.Range (0, maxRounder);
 
 			print ("top: " + roundTop + "    front: " + roundFront + "   back: " + roundBack + "   sides: " + roundSides);
 			print ("x: " + xSize + "    y: " + ySize + "   z: " + zSize + "   roundness: " + roundness);
 
-			if (distanceToCenter < buildLimit) {
+			if (distanceToCenter < buildingsLimit) {
 
-				int splitSize = (int)buildLimit / 8;
+				int splitSize = (int)buildingsLimit / buildingsFrequency;
 
 				if (xSize > splitSize || zSize > splitSize) {
 
@@ -236,7 +242,7 @@ public class GenerateCity : MonoBehaviour {
 
 					for (int o = 0; o < pointsInArea.Count; o++) {
 
-						ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); //(int)distanceToCenter;
+						ySize = Random.Range(buildingsMinHeight,buildingsMaxHeight) + ((int)distanceToMapEdge / 3); //(int)distanceToCenter;
 						print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
 
 						Vector3 buildingPos1 = new Vector3 (pointsInArea [o].x + (stretcher / 2), transform.localPosition.y, pointsInArea [o].z + (stretcher / 2));
@@ -248,7 +254,7 @@ public class GenerateCity : MonoBehaviour {
 				} else {
 					
 					xSize -= (int)stretcher;
-					ySize = Random.Range(0,20) + ((int)distanceToMapEdge / 3); // (int)distanceToCenter;
+					ySize = Random.Range(buildingsMinHeight,buildingsMaxHeight) + ((int)distanceToMapEdge / 3); // (int)distanceToCenter;
 					zSize -= (int)stretcher;
 
 					print ("xSize:  " + xSize + "   ySize: " + ySize + "   zSize  " + zSize);
