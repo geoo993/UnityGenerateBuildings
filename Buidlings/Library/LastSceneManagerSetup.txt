@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scene/Buildings.unity
+- path: Assets/Scene/BindingTexture.unity
   isLoaded: 1
   isActive: 1

@@ -80,13 +80,12 @@ public class BuildingAndTexture : MonoBehaviour {
 	}
 
 
-	private GameObject plane;
+	public GameObject plane;
 
 
 	private void RandomBuildingProperties()
 	{
 
-		plane = GameObject.Find("Plane");
 
 		float xScale = Random.Range (1.0f,6.0f);
 		float zScale = Random.Range (1.0f,6.0f);
@@ -823,7 +822,7 @@ public class BuildingAndTexture : MonoBehaviour {
 		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 		meshRenderer.material = material;
 
-		//plane.GetComponent<MeshRenderer> ().material = material;
+		plane.GetComponent<MeshRenderer> ().material = material;
 		//meshRenderer.material = null;
 
 
